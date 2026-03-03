@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Данные с ESP32</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Данные с ESP32</h1>
+        <p class="status">Статус: <span id="connectionStatus">Подключение к Supabase...</span></p>
+        
+        <div class="data-card">
+            <h2>Последние показания</h2>
+            <div id="latestData">
+                <p>Загрузка...</p>
+            </div>
+        </div>
+
+        <div class="data-card">
+            <h2>История измерений</h2>
+            <div id="historyTable">
+                <p>Загрузка истории...</p>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
