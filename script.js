@@ -1,7 +1,6 @@
 // ФИНАЛЬНАЯ ВЕРСИЯ СО СТАРЫМ КЛЮЧОМ
 const SUPABASE_URL = 'https://xqawbkilonphmhikawqs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhxYXdia2lsb25waG1oaWthd3FzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NTk2ODEsImV4cCI6MjA4ODEzNTY4MX0.IPLfnbuEA6PCK6y79NHKnbRpoBzMiNAA7BVWveQDM6o';
-
 async function loadData() {
     try {
         document.getElementById('connectionStatus').textContent = '⏳ Загрузка...';
