@@ -15,18 +15,24 @@ async function loadData() {
             
             // Последние показания
             const last = data[0];
+            
+            // Правильное форматирование даты
+            const date = new Date(last.created_at);
+            const formattedDate = date.toLocaleString();
+            
             document.getElementById('latestData').innerHTML = `
-                <p>🌡️ Температура: ${last.temperature}°C</p>
-                <p>💧 Влажность: ${last.humidity}%</p>
-                <p>🆔 Устройство: ${last.device_id}</p>
-                <p>🕐 Время: ${new Date(last.created_at).toLocaleString()}</p>
+                <p>🌡️ Температура: <strong>${last.temperature}°C</strong></p>
+                <p>💧 Влажность: <strong>${last.humidity}%</strong></p>
+                <p>🆔 Устройство: <strong>${last.device_id}</strong></p>
+                <p>🕐 Время: <strong>${formattedDate}</strong></p>
             `;
             
-            // История
-            let tableHtml = '<table border="1" style="width:100%"><tr><th>Время</th><th>°C</th><th>%</th><th>Устройство</th></tr>';
+            // История с правильными датами
+            let tableHtml = '<table border="1" style="width:100%; border-collapse: collapse;"><tr><th>Время</th><th>°C</th><th>%</th><th>Устройство</th></tr>';
             data.forEach(row => {
+                const rowDate = new Date(row.created_at).toLocaleString();
                 tableHtml += `<tr>
-                    <td>${new Date(row.created_at).toLocaleString()}</td>
+                    <td>${rowDate}</td>
                     <td>${row.temperature}</td>
                     <td>${row.humidity}</td>
                     <td>${row.device_id}</td>
@@ -42,6 +48,7 @@ async function loadData() {
     } catch (error) {
         console.error('Ошибка:', error);
         document.getElementById('connectionStatus').textContent = '❌ Ошибка';
+        document.getElementById('latestData').innerHTML = `<p>Ошибка: ${error.message}</p>`;
     }
 }
 
