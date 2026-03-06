@@ -1,4 +1,4 @@
-// МИНИМАЛЬНЫЙ ТЕСТ
+// СУПЕР-ПРОСТОЙ ТЕСТ
 const SUPABASE_URL = 'https://xqawbkilonphmhikawqs.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_84XA7ovvjzTYM4wzkvdkPg_GTRyWvOP';
 
@@ -11,19 +11,17 @@ async function loadData() {
         
         const data = await response.json();
         
-        // Выводим данные в консоль
-        console.log('Данные из Supabase:', data);
-        
-        // Показываем на странице
-        document.getElementById('connectionStatus').innerHTML = 
-            'Статус: ' + response.status + '<br>' +
-            'Данные получены: ' + JSON.stringify(data);
-        
-        document.getElementById('latestData').innerHTML = 
-            '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        // ПОЛНОСТЬЮ ПЕРЕЗАПИСЫВАЕМ страницу своими руками
+        document.body.innerHTML = `
+            <h1>📊 Тестовый вывод</h1>
+            <p>Статус ответа: ${response.status}</p>
+            <p>Количество записей: ${data.length}</p>
+            <p>Данные:</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+        `;
         
     } catch (error) {
-        console.error('Ошибка:', error);
+        document.body.innerHTML = `<h1>❌ Ошибка</h1><pre>${error}</pre>`;
     }
 }
 
