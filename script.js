@@ -6,11 +6,14 @@ async function loadData() {
     const response = await fetch(url);
     const data = await response.json();
     
+    // Показываем ВСЕ данные в сыром виде
     document.body.innerHTML = `
-        <h1>🔍 Что пришло от Supabase</h1>
-        <p>Статус ответа: ${response.status}</p>
+        <h1>📦 Сырые данные от Supabase</h1>
+        <p>Статус: ${response.status}</p>
         <p>Количество записей: ${data.length}</p>
-        <p>Данные:</p>
+        <p>Данные (первая запись):</p>
+        <pre>${JSON.stringify(data[0] || {}, null, 2)}</pre>
+        <p>Все данные:</p>
         <pre>${JSON.stringify(data, null, 2)}</pre>
     `;
 }
