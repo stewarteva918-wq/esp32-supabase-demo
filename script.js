@@ -1,37 +1,49 @@
-// ДИАГНОСТИКА - показать все таблицы
+// ФИНАЛЬНАЯ ВЕРСИЯ СО СТАРЫМ КЛЮЧОМ
 const SUPABASE_URL = 'https://xqawbkilonphmhikawqs.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_84XA7ovvjzTYM4wzkvdkPg_GTRyWvOP';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhxYXdia2lsb25waG1oaWthd3FzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NTk2ODEsImV4cCI6MjA4ODEzNTY4MX0.IPLfnbuEA6PCK6y79NHKnbRpoBzMiNAA7BVWveQDM6o';
 
 async function loadData() {
     try {
-        let output = '<h1>🔍 Диагностика Supabase</h1>';
+        document.getElementById('connectionStatus').textContent = '⏳ Загрузка...';
         
-        // Пробуем получить список таблиц
-        const tables = ['sensor_readings', 'Sensor_readings', 'sensor_reading'];
+        // Запрос к Supabase (ключ в URL)
+        const url = `${SUPABASE_URL}/rest/v1/sensor_readings?select=*&apikey=${SUPABASE_KEY}`;
+        const response = await fetch(url);
+        const data = await response.json();
         
-        for (const table of tables) {
-            output += `<h2>Пробуем таблицу: ${table}</h2>`;
+        if (data && data.length > 0) {
+            document.getElementById('connectionStatus').textContent = '✅ Найдено записей: ' + data.length;
             
-            const url = `${SUPABASE_URL}/rest/v1/${table}?select=*&apikey=${SUPABASE_KEY}`;
-            output += `<p>URL: ${url}</p>`;
+            // Последние показания
+            const last = data[0];
+            document.getElementById('latestData').innerHTML = `
+                <p>🌡️ Температура: ${last.temperature}°C</p>
+                <p>💧 Влажность: ${last.humidity}%</p>
+                <p>🆔 Устройство: ${last.device_id}</p>
+                <p>🕐 Время: ${new Date(last.created_at).toLocaleString()}</p>
+            `;
             
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                output += `<p>Статус: ${response.status}</p>`;
-                output += `<p>Количество записей: ${data.length}</p>`;
-                output += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-            } catch (e) {
-                output += `<p style="color:red">Ошибка: ${e.message}</p>`;
-            }
+            // Таблица истории
+            let tableHtml = '<table border="1" style="width:100%"><tr><th>Время</th><th>°C</th><th>%</th><th>Устройство</th></tr>';
+            data.forEach(row => {
+                tableHtml += `<tr>
+                    <td>${new Date(row.created_at).toLocaleString()}</td>
+                    <td>${row.temperature}</td>
+                    <td>${row.humidity}</td>
+                    <td>${row.device_id}</td>
+                </tr>`;
+            });
+            tableHtml += '</table>';
+            document.getElementById('historyTable').innerHTML = tableHtml;
+        } else {
+            document.getElementById('connectionStatus').textContent = '⚠️ Таблица пуста';
+            document.getElementById('latestData').innerHTML = '<p>📭 Нет данных</p>';
         }
-        
-        document.body.innerHTML = output;
-        
     } catch (error) {
-        document.body.innerHTML = `<h1>❌ Ошибка</h1><pre>${error}</pre>`;
+        console.error('Ошибка:', error);
+        document.getElementById('connectionStatus').textContent = '❌ Ошибка';
     }
 }
 
 loadData();
+setInterval(loadData, 10000);
