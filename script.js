@@ -5,37 +5,29 @@ async function loadData() {
     try {
         document.getElementById('connectionStatus').textContent = '⏳ Загрузка...';
         
-        const url = `${SUPABASE_URL}/rest/v1/sensor_readings?select=*&apikey=${SUPABASE_KEY}`;
-        const response = await fetch(url);
+        const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/sensor_readings?select=*&apikey=${SUPABASE_KEY}`
+        );
         const data = await response.json();
         
         if (data && data.length > 0) {
             document.getElementById('connectionStatus').textContent = '✅ Найдено записей: ' + data.length;
             
-            // Последняя запись
+            // Последние показания
             const last = data[0];
+            document.getElementById('latestData').innerHTML = `
+                <p>🌡️ Температура: ${last.temperature}°C</p>
+                <p>💧 Влажность: ${last.humidity}%</p>
+                <p>🆔 Устройство: ${last.device_id}</p>
+                <p>🕐 Время: ${new Date(last.created_at).toLocaleString()}</p>
+            `;
             
-            // Форматируем время из timestamp (created_at) в читаемый вид
-            const date = new Date(last.created_at * 1000); // если created_at в секундах
-            const timeString = date.toLocaleString();
-            
-            let html = '';
-            if (last.temperature) html += `<p>🌡️ Температура: ${last.temperature}°C</p>`;
-            if (last.humidity) html += `<p>💧 Влажность: ${last.humidity}%</p>`;
-            html += `<p>🆔 Устройство: ${last.device_id}</p>`;
-            html += `<p>🕐 Время (sensor_readings): ${new Date(last.sensor_readings).toLocaleString()}</p>`;
-            html += `<p>🕐 Время (created_at): ${timeString}</p>`;
-            
-            document.getElementById('latestData').innerHTML = html;
-            
-            // Таблица истории
-            let tableHtml = '<table border="1" style="width:100%"><tr><th>sensor_readings</th><th>created_at</th><th>°C</th><th>%</th><th>Устройство</th></tr>';
+            // История
+            let tableHtml = '<table border="1" style="width:100%"><tr><th>Время</th><th>°C</th><th>%</th><th>Устройство</th></tr>';
             data.forEach(row => {
-                const dateFromTimestamp = new Date(row.created_at * 1000).toLocaleString();
                 tableHtml += `<tr>
-                    <td>${new Date(row.sensor_readings).toLocaleString()}</td>
-                    <td>${dateFromTimestamp}</td>
-                    <td>${row.temperature || '—'}</td>
+                    <td>${new Date(row.created_at).toLocaleString()}</td>
+                    <td>${row.temperature}</td>
                     <td>${row.humidity}</td>
                     <td>${row.device_id}</td>
                 </tr>`;
