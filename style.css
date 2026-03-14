@@ -1,21 +1,15 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    max-width: 800px;
-    margin: 0;
+    max-width: 900px;
+    margin: 0 auto;
     padding: 20px;
     background: #f5f5f5;
-}
-
-.container {
-    width: 100%;
 }
 
 h1 {
     color: #333;
     font-size: 24px;
-    margin: 0 0 20px 0;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #ddd;
+    margin-bottom: 20px;
 }
 
 /* Вкладки */
@@ -25,19 +19,24 @@ h1 {
     margin-bottom: 20px;
     background: white;
     padding: 8px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .tab-button {
     flex: 1;
-    padding: 8px;
+    padding: 10px;
     border: none;
     border-radius: 6px;
     background: none;
     font-size: 14px;
     cursor: pointer;
     color: #666;
+    transition: all 0.2s;
+}
+
+.tab-button:hover {
+    background: #f0f0f0;
 }
 
 .tab-button.active {
@@ -45,56 +44,69 @@ h1 {
     color: white;
 }
 
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
 /* Статус */
 .status {
     background: white;
-    padding: 8px 12px;
-    border-radius: 6px;
+    padding: 8px 15px;
+    border-radius: 20px;
     font-size: 13px;
     color: #666;
-    margin-bottom: 15px;
     display: inline-block;
-}
-
-/* Сетка датчиков */
-.sensors-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
-    margin: 15px 0;
-}
-
-.sensor-card {
-    background: white;
-    padding: 12px;
-    border-radius: 8px;
+    margin-bottom: 15px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.sensor-name {
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 4px;
+/* Карточка датчика */
+.sensor-card {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 15px;
 }
 
-.sensor-value {
-    font-size: 20px;
+.sensor-name {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.sensor-values {
+    display: flex;
+    gap: 20px;
+}
+
+.sensor-value-item {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+}
+
+.sensor-value-item .value {
+    font-size: 28px;
     font-weight: 600;
     color: #333;
 }
 
-.sensor-unit {
-    font-size: 12px;
+.sensor-value-item .unit {
+    font-size: 14px;
     color: #999;
-    margin-left: 2px;
 }
 
 /* График */
 .chart-container {
     background: white;
     padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin: 15px 0;
     height: 250px;
 }
@@ -104,17 +116,17 @@ h1 {
     display: flex;
     gap: 15px;
     color: #666;
-    font-size: 12px;
+    font-size: 13px;
     margin: 10px 0;
     flex-wrap: wrap;
 }
 
-/* Таблица истории */
+/* Таблица */
 .table-container {
     background: white;
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 15px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     overflow-x: auto;
 }
 
@@ -127,22 +139,22 @@ table {
 th {
     background: #f0f0f0;
     color: #333;
-    padding: 8px;
+    padding: 10px;
     text-align: left;
     font-weight: 500;
 }
 
 td {
-    padding: 8px;
+    padding: 8px 10px;
     border-bottom: 1px solid #eee;
 }
 
-/* Настройки */
+/* Карточка настроек */
 .settings-card {
     background: white;
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .settings-card h3 {
@@ -161,11 +173,4 @@ hr {
     border: none;
     border-top: 1px solid #eee;
     margin: 15px 0;
-}
-
-/* Адаптивность */
-@media (max-width: 600px) {
-    body { padding: 10px; }
-    .sensors-grid { grid-template-columns: 1fr 1fr; }
-    .chart-container { height: 200px; }
 }
