@@ -4,6 +4,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 let chart = null;
 
 function openTab(tabName) {
+    // Переключаем вкладки
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
     });
@@ -22,22 +23,25 @@ async function loadData() {
         );
         const data = await response.json();
         
+        // Фильтруем только записи от MQ135
         const gasData = data.filter(row => 
             row.device_id === 'esp32_mq135' && row.gas_raw != null
         ).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
         
         if (gasData.length > 0) {
             const last = gasData[gasData.length - 1];
+            
+            // Конвертируем RAW в PPM
             const lastPPM = Math.round(last.gas_raw * (3.3 / 4095) * 100);
             
-            // Обновляем значения
+            // Обновляем значения на странице
             document.getElementById('gasRaw').textContent = last.gas_raw;
             document.getElementById('gasPPM').textContent = lastPPM;
             document.getElementById('deviceInfo').textContent = `🆔 ${last.device_id}`;
             document.getElementById('lastUpdate').textContent = `🕐 ${new Date(last.created_at).toLocaleString()}`;
-            document.getElementById('connectionStatus').textContent = '✅ Онлайн';
+            document.getElementById('connectionStatus').innerHTML = '✅ Онлайн';
             
-            // График (последние 20)
+            // График (последние 20 записей)
             const last20 = gasData.slice(-20);
             const labels = last20.map(row => {
                 const d = new Date(row.created_at);
@@ -45,6 +49,7 @@ async function loadData() {
             });
             const values = last20.map(row => Math.round(row.gas_raw * (3.3 / 4095) * 100));
             
+            // Обновляем или создаем график
             updateChart(labels, values);
             
             // Таблица истории
@@ -59,44 +64,63 @@ async function loadData() {
             });
             tableHtml += '</table>';
             document.getElementById('historyTable').innerHTML = tableHtml;
+            
+        } else {
+            document.getElementById('connectionStatus').innerHTML = '⚠️ Нет данных';
         }
     } catch (error) {
         console.log(error);
-        document.getElementById('connectionStatus').textContent = '❌ Ошибка';
+        document.getElementById('connectionStatus').innerHTML = '❌ Ошибка подключения';
     }
 }
 
 function updateChart(labels, values) {
     const ctx = document.getElementById('gasChart').getContext('2d');
     
-    if (chart) chart.destroy();
+    if (chart) {
+        chart.destroy();
+    }
     
     chart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [{
+                label: 'PPM',
                 data: values,
                 borderColor: '#007AFF',
-                backgroundColor: 'rgba(0,122,255,0.05)',
+                backgroundColor: 'rgba(0,122,255,0.1)',
                 borderWidth: 2,
                 tension: 0.3,
                 fill: true,
-                pointRadius: 3,
-                pointBackgroundColor: '#007AFF'
+                pointRadius: 3
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
             scales: {
-                y: { beginAtZero: false, grid: { color: '#f0f0f0' } },
-                x: { grid: { display: false } }
+                y: {
+                    beginAtZero: false,
+                    grid: {
+                        color: '#f0f0f0'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
             }
         }
     });
 }
 
+// Загружаем при старте и каждые 5 секунд
 loadData();
 setInterval(loadData, 5000);
