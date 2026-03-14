@@ -9,24 +9,62 @@
 </head>
 <body>
     <div class="container">
-        <h1>📊 Данные с ESP32</h1>
-        <div class="status" id="connectionStatus">Загрузка...</div>
+        <h1>📊 Мониторинг газа MQ135</h1>
         
-        <div class="data-card" id="latestData">
-            Загрузка...
+        <!-- Вкладки -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab('main')">🏠 Главная</button>
+            <button class="tab-button" onclick="openTab('history')">📋 История</button>
+            <button class="tab-button" onclick="openTab('settings')">⚙️ Настройки</button>
         </div>
 
-        <div class="data-card">
-            <h2>📈 График газа (PPM)</h2>
-            <div style="height: 300px;">
+        <!-- Главная страница (только график и текущие показания) -->
+        <div id="main" class="tab-content active">
+            <div class="status" id="connectionStatus">Загрузка...</div>
+            
+            <!-- Текущие показания (крупно) -->
+            <div class="current-values">
+                <div class="value-card">
+                    <div class="value-label">RAW</div>
+                    <div class="value-number" id="currentRaw">—</div>
+                </div>
+                <div class="value-card">
+                    <div class="value-label">PPM</div>
+                    <div class="value-number" id="currentPPM">—</div>
+                </div>
+            </div>
+
+            <!-- Только график -->
+            <div class="chart-container">
                 <canvas id="gasChart"></canvas>
+            </div>
+
+            <div class="info-row">
+                <span id="currentDevice"></span>
+                <span id="currentTime"></span>
             </div>
         </div>
 
-        <div class="data-card">
-            <h2>📋 История измерений</h2>
-            <div id="historyTable">
+        <!-- Страница истории (таблица) -->
+        <div id="history" class="tab-content">
+            <h2>📋 Полная история измерений</h2>
+            <div class="table-container" id="historyTable">
                 Загрузка истории...
+            </div>
+        </div>
+
+        <!-- Страница настроек -->
+        <div id="settings" class="tab-content">
+            <h2>⚙️ Настройки</h2>
+            <div class="settings-card">
+                <h3>О проекте</h3>
+                <p>Мониторинг качества воздуха на базе ESP32 + MQ135</p>
+                <p>Данные отправляются в Supabase и обновляются каждые 5 секунд</p>
+                <hr>
+                <h3>Параметры</h3>
+                <p>🔄 Интервал обновления: 5 секунд</p>
+                <p>📊 Отображается последних 20 измерений</p>
+                <p>🆔 Устройство: esp32_mq135</p>
             </div>
         </div>
     </div>
