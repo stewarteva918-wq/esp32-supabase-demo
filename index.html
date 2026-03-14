@@ -3,68 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Данные с ESP32</title>
+    <title>ESP32 монитор</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>📊 Мониторинг газа MQ135</h1>
+        <h1>📊 ESP32 монитор</h1>
         
         <!-- Вкладки -->
         <div class="tabs">
             <button class="tab-button active" onclick="openTab('main')">🏠 Главная</button>
             <button class="tab-button" onclick="openTab('history')">📋 История</button>
-            <button class="tab-button" onclick="openTab('settings')">⚙️ Настройки</button>
+            <button class="tab-button" onclick="openTab('settings')">ℹ️ О проекте</button>
         </div>
 
-        <!-- Главная страница (только график и текущие показания) -->
+        <!-- Главная -->
         <div id="main" class="tab-content active">
             <div class="status" id="connectionStatus">Загрузка...</div>
             
-            <!-- Текущие показания (крупно) -->
-            <div class="current-values">
-                <div class="value-card">
-                    <div class="value-label">RAW</div>
-                    <div class="value-number" id="currentRaw">—</div>
+            <!-- Сетка датчиков (сюда можно добавлять новые) -->
+            <div class="sensors-grid" id="sensorsGrid">
+                <!-- MQ135 Gas -->
+                <div class="sensor-card">
+                    <div class="sensor-name">💨 Газ (MQ135)</div>
+                    <div>
+                        <span class="sensor-value" id="gasRaw">—</span>
+                        <span class="sensor-unit">RAW</span>
+                    </div>
+                    <div>
+                        <span class="sensor-value" id="gasPPM">—</span>
+                        <span class="sensor-unit">PPM</span>
+                    </div>
                 </div>
-                <div class="value-card">
-                    <div class="value-label">PPM</div>
-                    <div class="value-number" id="currentPPM">—</div>
+                
+                <!-- Место для новых датчиков (пример) -->
+                <!--
+                <div class="sensor-card">
+                    <div class="sensor-name">🌡️ Температура</div>
+                    <span class="sensor-value" id="temp">—</span>
+                    <span class="sensor-unit">°C</span>
                 </div>
+                <div class="sensor-card">
+                    <div class="sensor-name">💧 Влажность</div>
+                    <span class="sensor-value" id="hum">—</span>
+                    <span class="sensor-unit">%</span>
+                </div>
+                <div class="sensor-card">
+                    <div class="sensor-name">🫁 CO2</div>
+                    <span class="sensor-value" id="co2">—</span>
+                    <span class="sensor-unit">ppm</span>
+                </div>
+                -->
             </div>
 
-            <!-- Только график -->
+            <!-- График -->
             <div class="chart-container">
                 <canvas id="gasChart"></canvas>
             </div>
 
+            <!-- Информация -->
             <div class="info-row">
-                <span id="currentDevice"></span>
-                <span id="currentTime"></span>
+                <span id="deviceInfo"></span>
+                <span id="lastUpdate"></span>
             </div>
         </div>
 
-        <!-- Страница истории (таблица) -->
+        <!-- История -->
         <div id="history" class="tab-content">
-            <h2>📋 Полная история измерений</h2>
+            <h2>📋 История измерений</h2>
             <div class="table-container" id="historyTable">
-                Загрузка истории...
+                Загрузка...
             </div>
         </div>
 
-        <!-- Страница настроек -->
+        <!-- О проекте -->
         <div id="settings" class="tab-content">
-            <h2>⚙️ Настройки</h2>
             <div class="settings-card">
-                <h3>О проекте</h3>
-                <p>Мониторинг качества воздуха на базе ESP32 + MQ135</p>
-                <p>Данные отправляются в Supabase и обновляются каждые 5 секунд</p>
+                <h3>🔧 О проекте</h3>
+                <p>Мониторинг качества воздуха на ESP32 + MQ135</p>
+                <p>📡 Данные в Supabase</p>
+                <p>🔄 Обновление каждые 5 секунд</p>
                 <hr>
-                <h3>Параметры</h3>
-                <p>🔄 Интервал обновления: 5 секунд</p>
-                <p>📊 Отображается последних 20 измерений</p>
-                <p>🆔 Устройство: esp32_mq135</p>
+                <h3>📊 Датчики</h3>
+                <p>• MQ135 - качество воздуха (RAW/PPM)</p>
+                <p>• Место для новых датчиков</p>
+                <hr>
+                <h3>🔗 Ссылки</h3>
+                <p>GitHub репозиторий</p>
+                <p>Supabase проект</p>
             </div>
         </div>
     </div>
