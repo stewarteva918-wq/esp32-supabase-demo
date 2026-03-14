@@ -5,23 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Данные с ESP32</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>📊 Данные с ESP32</h1>
-        <p class="status">Статус: <span id="connectionStatus">Подключение к Supabase...</span></p>
+        <div class="status" id="connectionStatus">Загрузка...</div>
         
+        <div class="data-card" id="latestData">
+            Загрузка...
+        </div>
+
         <div class="data-card">
-            <h2>Последние показания</h2>
-            <div id="latestData">
-                <p>Загрузка...</p>
+            <h2>📈 График газа (PPM)</h2>
+            <div style="height: 300px;">
+                <canvas id="gasChart"></canvas>
             </div>
         </div>
 
         <div class="data-card">
-            <h2>История измерений</h2>
+            <h2>📋 История измерений</h2>
             <div id="historyTable">
-                <p>Загрузка истории...</p>
+                Загрузка истории...
             </div>
         </div>
     </div>
