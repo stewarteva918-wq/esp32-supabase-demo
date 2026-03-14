@@ -3,8 +3,9 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 let chart = null;
 
-function openTab(tabName) {
-    // Переключаем вкладки
+// Функция переключения вкладок
+window.openTab = function(tabName) {
+    // Скрываем все вкладки
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
     });
@@ -12,10 +13,12 @@ function openTab(tabName) {
         btn.classList.remove('active');
     });
     
+    // Показываем выбранную
     document.getElementById(tabName).classList.add('active');
     event.target.classList.add('active');
 }
 
+// Загрузка данных
 async function loadData() {
     try {
         const response = await fetch(
@@ -23,38 +26,64 @@ async function loadData() {
         );
         const data = await response.json();
         
-        // Фильтруем только записи от MQ135
+        // Фильтруем только esp32_mq135
         const gasData = data.filter(row => 
             row.device_id === 'esp32_mq135' && row.gas_raw != null
-        ).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        );
         
         if (gasData.length > 0) {
-            const last = gasData[gasData.length - 1];
+            // Сортируем по времени (новые сверху)
+            gasData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             
-            // Конвертируем RAW в PPM
+            const last = gasData[0];
             const lastPPM = Math.round(last.gas_raw * (3.3 / 4095) * 100);
             
-            // Обновляем значения на странице
+            // Обновляем значения
             document.getElementById('gasRaw').textContent = last.gas_raw;
             document.getElementById('gasPPM').textContent = lastPPM;
-            document.getElementById('deviceInfo').textContent = `🆔 ${last.device_id}`;
-            document.getElementById('lastUpdate').textContent = `🕐 ${new Date(last.created_at).toLocaleString()}`;
+            document.getElementById('deviceInfo').innerHTML = `🆔 ${last.device_id}`;
+            document.getElementById('lastUpdate').innerHTML = `🕐 ${new Date(last.created_at).toLocaleString()}`;
             document.getElementById('connectionStatus').innerHTML = '✅ Онлайн';
             
-            // График (последние 20 записей)
-            const last20 = gasData.slice(-20);
+            // График (последние 20, но в обратном порядке для графика)
+            const last20 = gasData.slice(0, 20).reverse();
             const labels = last20.map(row => {
                 const d = new Date(row.created_at);
                 return `${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
             });
             const values = last20.map(row => Math.round(row.gas_raw * (3.3 / 4095) * 100));
             
-            // Обновляем или создаем график
-            updateChart(labels, values);
+            // Создаем график
+            if (chart) chart.destroy();
+            
+            const ctx = document.getElementById('gasChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        borderColor: '#007AFF',
+                        backgroundColor: 'rgba(0,122,255,0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: false }
+                    }
+                }
+            });
             
             // Таблица истории
             let tableHtml = '<table><tr><th>Время</th><th>RAW</th><th>PPM</th></tr>';
-            gasData.slice(-50).reverse().forEach(row => {
+            gasData.slice(0, 30).forEach(row => {
                 const ppm = Math.round(row.gas_raw * (3.3 / 4095) * 100);
                 tableHtml += `<tr>
                     <td>${new Date(row.created_at).toLocaleString()}</td>
@@ -66,7 +95,7 @@ async function loadData() {
             document.getElementById('historyTable').innerHTML = tableHtml;
             
         } else {
-            document.getElementById('connectionStatus').innerHTML = '⚠️ Нет данных';
+            document.getElementById('connectionStatus').innerHTML = '⚠️ Нет данных от MQ135';
         }
     } catch (error) {
         console.log(error);
@@ -74,53 +103,6 @@ async function loadData() {
     }
 }
 
-function updateChart(labels, values) {
-    const ctx = document.getElementById('gasChart').getContext('2d');
-    
-    if (chart) {
-        chart.destroy();
-    }
-    
-    chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'PPM',
-                data: values,
-                borderColor: '#007AFF',
-                backgroundColor: 'rgba(0,122,255,0.1)',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true,
-                pointRadius: 3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: false,
-                    grid: {
-                        color: '#f0f0f0'
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Загружаем при старте и каждые 5 секунд
+// Запускаем
 loadData();
 setInterval(loadData, 5000);
