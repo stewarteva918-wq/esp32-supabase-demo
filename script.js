@@ -1,10 +1,23 @@
 const SUPABASE_URL = 'https://xqawbkilonphmhikawqs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhxYXdia2lsb25waG1oaWthd3FzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NTk2ODEsImV4cCI6MjA4ODEzNTY4MX0.IPLfnbuEA6PCK6y79NHKnbRpoBzMiNAA7BVWveQDM6o';
 
-// Глобальные переменные для графика
 let chart = null;
 let chartData = [];
 let chartLabels = [];
+
+function openTab(tabName) {
+    // Скрываем все вкладки
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Показываем выбранную
+    document.getElementById(tabName).classList.add('active');
+    event.target.classList.add('active');
+}
 
 async function loadData() {
     try {
@@ -13,60 +26,49 @@ async function loadData() {
         );
         const data = await response.json();
         
-        // Фильтруем только записи от MQ135 с газом
+        // Фильтруем записи от MQ135
         const gasData = data.filter(row => 
             row.device_id === 'esp32_mq135' && row.gas_raw != null
         ).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
         
         if (gasData.length > 0) {
-            // Конвертируем RAW в PPM (примерная формула для MQ135)
-            // Обычно PPM = RAW * (3.3 / 4095) * 1000
             const last = gasData[gasData.length - 1];
-            const lastPPM = (last.gas_raw * (3.3 / 4095) * 100).toFixed(0);
             
-            document.getElementById('connectionStatus').innerHTML = 
-                `✅ Последние данные: ${new Date(last.created_at).toLocaleTimeString()}`;
+            // Конвертируем RAW в PPM
+            const lastPPM = Math.round(last.gas_raw * (3.3 / 4095) * 100);
             
-            // Главная страница - только текущие значения
-            document.getElementById('latestData').innerHTML = `
-                <div style="font-size: 48px; text-align: center; margin: 20px 0;">
-                    💨 <strong>${last.gas_raw}</strong> <span style="font-size: 24px;">RAW</span>
-                </div>
-                <div style="font-size: 32px; text-align: center; margin: 20px 0; color: #e67e22;">
-                    🌫️ <strong>${lastPPM}</strong> <span style="font-size: 18px;">PPM</span>
-                </div>
-                <div style="text-align: center; color: #666;">
-                    🕐 ${new Date(last.created_at).toLocaleString()}<br>
-                    📟 Устройство: ${last.device_id}
-                </div>
-            `;
+            // Обновляем главную страницу
+            document.getElementById('currentRaw').textContent = last.gas_raw;
+            document.getElementById('currentPPM').textContent = lastPPM;
+            document.getElementById('currentDevice').textContent = `🆔 ${last.device_id}`;
+            document.getElementById('currentTime').textContent = `🕐 ${new Date(last.created_at).toLocaleString()}`;
+            document.getElementById('connectionStatus').textContent = '✅ Онлайн';
             
-            // Подготовка данных для графика (последние 20 записей)
+            // Подготовка данных для графика (последние 20)
             const last20 = gasData.slice(-20);
             chartLabels = last20.map(row => {
                 const d = new Date(row.created_at);
                 return `${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
             });
-            chartData = last20.map(row => (row.gas_raw * (3.3 / 4095) * 100).toFixed(0));
+            chartData = last20.map(row => Math.round(row.gas_raw * (3.3 / 4095) * 100));
             
-            // Создаем или обновляем график
             updateChart();
             
-            // Таблица с историей (последние 10 записей)
+            // История (таблица)
             let tableHtml = `
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr style="background: #f0f0f0;">
+                <table>
+                    <tr>
                         <th>Время</th>
                         <th>RAW</th>
                         <th>PPM</th>
                     </tr>
             `;
             
-            gasData.slice(-10).reverse().forEach(row => {
-                const ppm = (row.gas_raw * (3.3 / 4095) * 100).toFixed(0);
-                tableHtml += `<tr style="border-bottom: 1px solid #ddd;">
+            gasData.slice(-50).reverse().forEach(row => {
+                const ppm = Math.round(row.gas_raw * (3.3 / 4095) * 100);
+                tableHtml += `<tr>
                     <td>${new Date(row.created_at).toLocaleString()}</td>
-                    <td><strong>${row.gas_raw}</strong></td>
+                    <td>${row.gas_raw}</td>
                     <td>${ppm}</td>
                 </tr>`;
             });
@@ -75,6 +77,7 @@ async function loadData() {
         }
     } catch (error) {
         console.log(error);
+        document.getElementById('connectionStatus').textContent = '❌ Ошибка';
     }
 }
 
@@ -94,8 +97,13 @@ function updateChart() {
                 data: chartData,
                 borderColor: '#e67e22',
                 backgroundColor: 'rgba(230, 126, 34, 0.1)',
+                borderWidth: 3,
                 tension: 0.3,
-                fill: true
+                fill: true,
+                pointBackgroundColor: '#e67e22',
+                pointBorderColor: 'white',
+                pointRadius: 4,
+                pointHoverRadius: 6
             }]
         },
         options: {
@@ -109,9 +117,13 @@ function updateChart() {
             scales: {
                 y: {
                     beginAtZero: false,
-                    title: {
-                        display: true,
-                        text: 'PPM'
+                    grid: {
+                        color: 'rgba(0,0,0,0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
                     }
                 }
             }
@@ -119,16 +131,6 @@ function updateChart() {
     });
 }
 
-// Добавляем canvas для графика в HTML
-document.addEventListener('DOMContentLoaded', () => {
-    const chartDiv = document.createElement('div');
-    chartDiv.style.height = '300px';
-    chartDiv.style.margin = '20px 0';
-    chartDiv.innerHTML = '<canvas id="gasChart"></canvas>';
-    
-    const historyDiv = document.getElementById('historyTable');
-    historyDiv.parentNode.insertBefore(chartDiv, historyDiv);
-    
-    loadData();
-    setInterval(loadData, 5000);
-});
+// Запуск
+loadData();
+setInterval(loadData, 5000);
