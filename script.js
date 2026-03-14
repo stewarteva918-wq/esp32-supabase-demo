@@ -5,7 +5,6 @@ let chart = null;
 
 // Функция переключения вкладок
 window.openTab = function(tabName) {
-    // Скрываем все вкладки
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
     });
@@ -13,12 +12,10 @@ window.openTab = function(tabName) {
         btn.classList.remove('active');
     });
     
-    // Показываем выбранную
     document.getElementById(tabName).classList.add('active');
     event.target.classList.add('active');
 }
 
-// Загрузка данных
 async function loadData() {
     try {
         const response = await fetch(
@@ -26,26 +23,22 @@ async function loadData() {
         );
         const data = await response.json();
         
-        // Фильтруем только esp32_mq135
         const gasData = data.filter(row => 
             row.device_id === 'esp32_mq135' && row.gas_raw != null
-        );
+        ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         
         if (gasData.length > 0) {
-            // Сортируем по времени (новые сверху)
-            gasData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-            
             const last = gasData[0];
             const lastPPM = Math.round(last.gas_raw * (3.3 / 4095) * 100);
             
-            // Обновляем значения
+            // Обновляем главную страницу
             document.getElementById('gasRaw').textContent = last.gas_raw;
             document.getElementById('gasPPM').textContent = lastPPM;
             document.getElementById('deviceInfo').innerHTML = `🆔 ${last.device_id}`;
             document.getElementById('lastUpdate').innerHTML = `🕐 ${new Date(last.created_at).toLocaleString()}`;
             document.getElementById('connectionStatus').innerHTML = '✅ Онлайн';
             
-            // График (последние 20, но в обратном порядке для графика)
+            // График (последние 20)
             const last20 = gasData.slice(0, 20).reverse();
             const labels = last20.map(row => {
                 const d = new Date(row.created_at);
@@ -53,7 +46,6 @@ async function loadData() {
             });
             const values = last20.map(row => Math.round(row.gas_raw * (3.3 / 4095) * 100));
             
-            // Создаем график
             if (chart) chart.destroy();
             
             const ctx = document.getElementById('gasChart').getContext('2d');
@@ -81,9 +73,9 @@ async function loadData() {
                 }
             });
             
-            // Таблица истории
+            // Таблица истории (ТОЛЬКО для вкладки История)
             let tableHtml = '<table><tr><th>Время</th><th>RAW</th><th>PPM</th></tr>';
-            gasData.slice(0, 30).forEach(row => {
+            gasData.slice(0, 50).forEach(row => {
                 const ppm = Math.round(row.gas_raw * (3.3 / 4095) * 100);
                 tableHtml += `<tr>
                     <td>${new Date(row.created_at).toLocaleString()}</td>
@@ -95,14 +87,13 @@ async function loadData() {
             document.getElementById('historyTable').innerHTML = tableHtml;
             
         } else {
-            document.getElementById('connectionStatus').innerHTML = '⚠️ Нет данных от MQ135';
+            document.getElementById('connectionStatus').innerHTML = '⚠️ Нет данных';
         }
     } catch (error) {
         console.log(error);
-        document.getElementById('connectionStatus').innerHTML = '❌ Ошибка подключения';
+        document.getElementById('connectionStatus').innerHTML = '❌ Ошибка';
     }
 }
 
-// Запускаем
 loadData();
 setInterval(loadData, 5000);
