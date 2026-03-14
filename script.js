@@ -11,36 +11,47 @@ async function loadData() {
         const data = await response.json();
         
         if (data && data.length > 0) {
-            document.getElementById('connectionStatus').textContent = '✅ Найдено записей: ' + data.length;
+            // Фильтруем только записи от MQ135
+            const mq135Data = data.filter(row => row.device_id === 'esp32_mq135');
             
-            // Последние показания
-            const last = data[0];
+            document.getElementById('connectionStatus').textContent = 
+                `✅ Найдено: ${mq135Data.length} записей от MQ135`;
             
-            // Правильное форматирование даты
-            const date = new Date(last.created_at);
-            const formattedDate = date.toLocaleString();
-            
-            document.getElementById('latestData').innerHTML = `
-                <p>🌡️ Температура: <strong>${last.temperature}°C</strong></p>
-                <p>💧 Влажность: <strong>${last.humidity}%</strong></p>
-                <p>🆔 Устройство: <strong>${last.device_id}</strong></p>
-                <p>🕐 Время: <strong>${formattedDate}</strong></p>
-            `;
-            
-            // История с правильными датами
-            let tableHtml = '<table border="1" style="width:100%; border-collapse: collapse;"><tr><th>Время</th><th>°C</th><th>%</th><th>Устройство</th></tr>';
-            data.forEach(row => {
-                const rowDate = new Date(row.created_at).toLocaleString();
-                tableHtml += `<tr>
-                    <td>${rowDate}</td>
-                    <td>${row.temperature}</td>
-                    <td>${row.humidity}</td>
-                    <td>${row.device_id}</td>
-                </tr>`;
-            });
-            tableHtml += '</table>';
-            document.getElementById('historyTable').innerHTML = tableHtml;
-            
+            if (mq135Data.length > 0) {
+                // Последние показания газа
+                const last = mq135Data[0];
+                
+                let gasHtml = '';
+                if (last.gas_ppm) {
+                    gasHtml += `<p>💨 Газ (PPM): <strong>${last.gas_ppm.toFixed(2)}</strong></p>`;
+                }
+                if (last.gas_raw) {
+                    gasHtml += `<p>📟 Сырой сигнал: <strong>${last.gas_raw}</strong></p>`;
+                }
+                if (last.device_id) {
+                    gasHtml += `<p>🆔 Устройство: <strong>${last.device_id}</strong></p>`;
+                }
+                if (last.created_at) {
+                    gasHtml += `<p>🕐 Время: <strong>${new Date(last.created_at).toLocaleString()}</strong></p>`;
+                }
+                
+                document.getElementById('latestData').innerHTML = gasHtml;
+                
+                // Таблица истории (только газ)
+                let tableHtml = '<table border="1" style="width:100%"><tr><th>Время</th><th>Газ (PPM)</th><th>RAW</th><th>Устройство</th></tr>';
+                mq135Data.slice(0, 20).forEach(row => { // последние 20 записей
+                    tableHtml += `<tr>
+                        <td>${new Date(row.created_at).toLocaleString()}</td>
+                        <td>${row.gas_ppm ? row.gas_ppm.toFixed(2) : '—'}</td>
+                        <td>${row.gas_raw || '—'}</td>
+                        <td>${row.device_id}</td>
+                    </tr>`;
+                });
+                tableHtml += '</table>';
+                document.getElementById('historyTable').innerHTML = tableHtml;
+            } else {
+                document.getElementById('latestData').innerHTML = '<p>⏳ Нет данных от MQ135</p>';
+            }
         } else {
             document.getElementById('connectionStatus').textContent = '⚠️ Таблица пуста';
             document.getElementById('latestData').innerHTML = '<p>📭 Нет данных</p>';
@@ -48,9 +59,9 @@ async function loadData() {
     } catch (error) {
         console.error('Ошибка:', error);
         document.getElementById('connectionStatus').textContent = '❌ Ошибка';
-        document.getElementById('latestData').innerHTML = `<p>Ошибка: ${error.message}</p>`;
     }
 }
 
+// Загружаем сразу и каждые 5 секунд
 loadData();
-setInterval(loadData, 10000);
+setInterval(loadData, 5000);
