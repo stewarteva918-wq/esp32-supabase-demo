@@ -108,15 +108,63 @@ h1 {
     color: #999;
 }
 
+/* Ряд с графиками для BME280 */
+.charts-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    width: 100%;
+}
+
+.charts-row .mini-chart {
+    flex: 1;
+    height: 60px;
+    margin-top: 0;
+}
+
 /* Мини-графики */
 .mini-chart {
-    margin-top: 12px;
     height: 60px;
     width: 100%;
     opacity: 0.8;
     border-radius: 6px;
     background: #fafafa;
-    padding: 5px 0;
+    padding: 3px 0;
+    margin-top: 10px;
+}
+
+.mini-chart canvas {
+    max-height: 60px;
+    width: 100% !important;
+}
+
+/* Цвета для графиков BME280 */
+#tempChart {
+    border-left: 2px solid #FF6B6B;
+}
+
+#humChart {
+    border-left: 2px solid #4ECDC4;
+}
+
+#presChart {
+    border-left: 2px solid #9B59B6;
+}
+
+#accChart {
+    border-left: 2px solid #4ECDC4;
+}
+
+#uvChart {
+    border-left: 2px solid #9B59B6;
+}
+
+#ecgChart {
+    border-left: 2px solid #2ECC71;
+}
+
+#gasChart {
+    border-left: 2px solid #007AFF;
 }
 
 /* Контейнер для большого графика */
@@ -223,7 +271,15 @@ h2 {
         font-size: 20px;
     }
     
+    .charts-row {
+        gap: 4px;
+    }
+    
     .mini-chart {
+        height: 50px;
+    }
+    
+    .charts-row .mini-chart {
         height: 50px;
     }
     
@@ -242,34 +298,8 @@ h2 {
     }
 }
 
-/* Стили для графиков */
+/* Стили для canvas */
 canvas {
     max-width: 100%;
     height: auto !important;
-}
-
-/* Специально для мини-графиков */
-.mini-chart canvas {
-    max-height: 60px;
-}
-
-/* Цветовые акценты */
-#tempChart {
-    border-left: 2px solid #FF6B6B;
-}
-
-#accChart {
-    border-left: 2px solid #4ECDC4;
-}
-
-#uvChart {
-    border-left: 2px solid #9B59B6;
-}
-
-#ecgChart {
-    border-left: 2px solid #2ECC71;
-}
-
-#gasChart {
-    border-left: 2px solid #007AFF;
 }
