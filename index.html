@@ -160,9 +160,14 @@
             </div>
         </div>
 
-        <!-- История -->
+        <!-- История с кнопкой CSV -->
         <div id="history" class="tab-content">
-            <h2>📋 История измерений</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0;">📋 История измерений</h2>
+                <button id="downloadCSV" class="download-btn" onclick="downloadDataAsCSV()">
+                    📥 Скачать CSV
+                </button>
+            </div>
             <div class="table-container" id="historyTable">
                 Загрузка...
             </div>
@@ -174,7 +179,7 @@
                 <h3>🔧 О проекте</h3>
                 <p>Мониторинг всех датчиков на ESP32</p>
                 <p>📡 Датчики: BME280, MPU6050, ML8511, AD8232, MQ135</p>
-                <p>🔄 Обновление каждые 30 секунд</p>
+                <p>🔄 Обновление каждые 5 секунд</p>
                 <hr>
                 <h3>📊 Текущие значения</h3>
                 <p id="stats">Загрузка...</p>
