@@ -14,42 +14,14 @@
         <!-- Вкладки -->
         <div class="tabs">
             <button class="tab-button active" onclick="openTab('main')">🏠 Главная</button>
-            <button class="tab-button" onclick="openTab('sensors')">📡 Все датчики</button>
+            <button class="tab-button" onclick="openTab('gas')">💨 Газ</button>
             <button class="tab-button" onclick="openTab('history')">📋 История</button>
             <button class="tab-button" onclick="openTab('settings')">ℹ️ О проекте</button>
         </div>
 
-        <!-- Главная (только MQ135) -->
+        <!-- Главная (MPU6050, BME280, ML8511, AD8232) -->
         <div id="main" class="tab-content active">
             <div class="status" id="connectionStatus">Загрузка...</div>
-            
-            <div class="sensor-card">
-                <div class="sensor-name">💨 Газ (MQ135)</div>
-                <div class="sensor-values">
-                    <div class="sensor-value-item">
-                        <span class="value" id="gasRaw">—</span>
-                        <span class="unit">RAW</span>
-                    </div>
-                    <div class="sensor-value-item">
-                        <span class="value" id="gasPPM">—</span>
-                        <span class="unit">PPM</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="chart-container">
-                <canvas id="gasChart"></canvas>
-            </div>
-
-            <div class="info-row">
-                <span id="deviceInfo"></span>
-                <span id="lastUpdate"></span>
-            </div>
-        </div>
-
-        <!-- Вкладка со всеми датчиками -->
-        <div id="sensors" class="tab-content">
-            <h2>📡 Все показания</h2>
             
             <!-- BME280 -->
             <div class="sensor-card">
@@ -115,24 +87,37 @@
                 </div>
             </div>
 
-            <!-- MQ135 (дубль для полноты) -->
+            <div class="info-row">
+                <span id="deviceInfo"></span>
+                <span id="lastUpdate"></span>
+            </div>
+        </div>
+
+        <!-- Вкладка с газом -->
+        <div id="gas" class="tab-content">
+            <h2>💨 Газ (MQ135)</h2>
+            
             <div class="sensor-card">
-                <div class="sensor-name">💨 MQ135 (газ)</div>
+                <div class="sensor-name">💨 MQ135</div>
                 <div class="sensor-values">
                     <div class="sensor-value-item">
-                        <span class="value" id="gasRaw2">—</span>
+                        <span class="value" id="gasRaw">—</span>
                         <span class="unit">RAW</span>
                     </div>
                     <div class="sensor-value-item">
-                        <span class="value" id="gasPPM2">—</span>
+                        <span class="value" id="gasPPM">—</span>
                         <span class="unit">PPM</span>
                     </div>
                 </div>
             </div>
 
+            <div class="chart-container">
+                <canvas id="gasChart"></canvas>
+            </div>
+
             <div class="info-row">
-                <span id="deviceInfo2"></span>
-                <span id="lastUpdate2"></span>
+                <span id="gasDeviceInfo"></span>
+                <span id="gasLastUpdate"></span>
             </div>
         </div>
 
