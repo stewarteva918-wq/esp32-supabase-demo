@@ -19,11 +19,11 @@
             <button class="tab-button" onclick="openTab('settings')">ℹ️ О проекте</button>
         </div>
 
-        <!-- Главная (MPU6050, BME280, ML8511, AD8232) -->
+        <!-- Главная -->
         <div id="main" class="tab-content active">
             <div class="status" id="connectionStatus">Загрузка...</div>
             
-            <!-- BME280 -->
+            <!-- BME280 с тремя графиками -->
             <div class="sensor-card">
                 <div class="sensor-name">🌡️ BME280</div>
                 <div class="sensor-values">
@@ -40,8 +40,17 @@
                         <span class="unit">hPa</span>
                     </div>
                 </div>
-                <div class="mini-chart">
-                    <canvas id="tempChart" width="200" height="60"></canvas>
+                <!-- Три графика в ряд -->
+                <div class="charts-row">
+                    <div class="mini-chart">
+                        <canvas id="tempChart"></canvas>
+                    </div>
+                    <div class="mini-chart">
+                        <canvas id="humChart"></canvas>
+                    </div>
+                    <div class="mini-chart">
+                        <canvas id="presChart"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -63,7 +72,7 @@
                     </div>
                 </div>
                 <div class="mini-chart">
-                    <canvas id="accChart" width="200" height="60"></canvas>
+                    <canvas id="accChart"></canvas>
                 </div>
             </div>
 
@@ -81,7 +90,7 @@
                     </div>
                 </div>
                 <div class="mini-chart">
-                    <canvas id="uvChart" width="200" height="60"></canvas>
+                    <canvas id="uvChart"></canvas>
                 </div>
             </div>
 
@@ -95,7 +104,7 @@
                     </div>
                 </div>
                 <div class="mini-chart">
-                    <canvas id="ecgChart" width="200" height="60"></canvas>
+                    <canvas id="ecgChart"></canvas>
                 </div>
             </div>
 
@@ -146,7 +155,7 @@
             <div class="settings-card">
                 <h3>🔧 О проекте</h3>
                 <p>Мониторинг всех датчиков на ESP32</p>
-                <p>📡 Датчики: BME280, MPU6050, ML8511, AD8232, MQ135</p>
+                <p>📡 Датчики: BME280, MPU6050, ML8511, AD8232</p>
                 <p>🔄 Обновление каждые 30 секунд</p>
                 <hr>
                 <h3>📊 Текущие значения</h3>
