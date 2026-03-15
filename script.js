@@ -4,7 +4,6 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 let gasChart = null;
 let allData = [];
 
-// Функция переключения вкладок
 window.openTab = function(tabName) {
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
@@ -25,108 +24,99 @@ async function loadData() {
         const data = await response.json();
         allData = data;
         
-        // Фильтруем последние записи
-        const mq135Data = data.filter(row => 
-            row.device_id === 'esp32_mq135' && row.gas_raw != null
-        ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        
+        // Последние данные от всех датчиков
         const allSensorsData = data.filter(row => 
             row.device_id === 'esp32_all_sensors'
         ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         
-        // Берем самые свежие данные (сначала ищем all_sensors, если нет - mq135)
-        const last = allSensorsData.length > 0 ? allSensorsData[0] : 
-                     (mq135Data.length > 0 ? mq135Data[0] : null);
+        // Данные только от MQ135 (для газа)
+        const gasData = data.filter(row => 
+            (row.device_id === 'esp32_all_sensors' || row.device_id === 'esp32_mq135') && 
+            row.gas_raw != null
+        ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         
-        if (last) {
-            updateMainPage(last, mq135Data);
-            updateSensorsPage(last);
-            updateHistory(data);
-            updateStats(data);
+        if (allSensorsData.length > 0) {
+            const last = allSensorsData[0];
+            
+            // Главная страница (все датчики кроме газа)
+            document.getElementById('temp').textContent = last.temperature?.toFixed(1) || '—';
+            document.getElementById('hum').textContent = last.humidity?.toFixed(1) || '—';
+            document.getElementById('pres').textContent = last.pressure?.toFixed(1) || '—';
+            
+            document.getElementById('accX').textContent = last.acc_x?.toFixed(2) || '—';
+            document.getElementById('accY').textContent = last.acc_y?.toFixed(2) || '—';
+            document.getElementById('accZ').textContent = last.acc_z?.toFixed(2) || '—';
+            
+            document.getElementById('uvRaw').textContent = last.uv_raw || '—';
+            document.getElementById('uvIndex').textContent = last.uv_index?.toFixed(1) || '—';
+            
+            document.getElementById('ecgRaw').textContent = last.ecg_raw || '—';
+            
+            document.getElementById('deviceInfo').innerHTML = `🆔 ${last.device_id}`;
+            document.getElementById('lastUpdate').innerHTML = `🕐 ${new Date(last.created_at).toLocaleString()}`;
+            document.getElementById('connectionStatus').innerHTML = '✅ Онлайн';
         }
         
-        document.getElementById('connectionStatus').innerHTML = '✅ Онлайн';
+        // Вкладка с газом
+        if (gasData.length > 0) {
+            const lastGas = gasData[0];
+            const ppm = Math.round(lastGas.gas_raw * (3.3 / 4095) * 100);
+            
+            document.getElementById('gasRaw').textContent = lastGas.gas_raw;
+            document.getElementById('gasPPM').textContent = ppm;
+            document.getElementById('gasDeviceInfo').innerHTML = `🆔 ${lastGas.device_id}`;
+            document.getElementById('gasLastUpdate').innerHTML = `🕐 ${new Date(lastGas.created_at).toLocaleString()}`;
+            
+            // График газа
+            const gasHistory = gasData.slice(0, 20).reverse();
+            const labels = gasHistory.map(row => {
+                const d = new Date(row.created_at);
+                return `${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
+            });
+            const values = gasHistory.map(row => Math.round(row.gas_raw * (3.3 / 4095) * 100));
+            
+            if (gasChart) gasChart.destroy();
+            
+            const ctx = document.getElementById('gasChart').getContext('2d');
+            gasChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        borderColor: '#007AFF',
+                        backgroundColor: 'rgba(0,122,255,0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: false } }
+                }
+            });
+        }
+        
+        // История
+        updateHistory(data);
+        
+        // Статистика
+        const count = data.length;
+        const last = data[0]?.created_at ? new Date(data[0].created_at).toLocaleString() : '—';
+        document.getElementById('stats').innerHTML = `
+            Всего записей: ${count}<br>
+            Последнее обновление: ${last}<br>
+            Устройств: ${new Set(data.map(d => d.device_id)).size}
+        `;
         
     } catch (error) {
         console.log(error);
         document.getElementById('connectionStatus').innerHTML = '❌ Ошибка';
     }
-}
-
-function updateMainPage(last, mq135Data) {
-    // Главная страница (только газ)
-    if (last.gas_raw) {
-        document.getElementById('gasRaw').textContent = last.gas_raw;
-        const ppm = Math.round(last.gas_raw * (3.3 / 4095) * 100);
-        document.getElementById('gasPPM').textContent = ppm;
-    }
-    
-    document.getElementById('deviceInfo').innerHTML = `🆔 ${last.device_id}`;
-    document.getElementById('lastUpdate').innerHTML = `🕐 ${new Date(last.created_at).toLocaleString()}`;
-    
-    // График газа
-    if (mq135Data.length > 0) {
-        const last20 = mq135Data.slice(0, 20).reverse();
-        const labels = last20.map(row => {
-            const d = new Date(row.created_at);
-            return `${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
-        });
-        const values = last20.map(row => Math.round(row.gas_raw * (3.3 / 4095) * 100));
-        
-        if (gasChart) gasChart.destroy();
-        
-        const ctx = document.getElementById('gasChart').getContext('2d');
-        gasChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: values,
-                    borderColor: '#007AFF',
-                    backgroundColor: 'rgba(0,122,255,0.1)',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    fill: true,
-                    pointRadius: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: false } }
-            }
-        });
-    }
-}
-
-function updateSensorsPage(last) {
-    // BME280
-    document.getElementById('temp').textContent = last.temperature?.toFixed(1) || '—';
-    document.getElementById('hum').textContent = last.humidity?.toFixed(1) || '—';
-    document.getElementById('pres').textContent = last.pressure?.toFixed(1) || '—';
-    
-    // MPU6050
-    document.getElementById('accX').textContent = last.acc_x?.toFixed(2) || '—';
-    document.getElementById('accY').textContent = last.acc_y?.toFixed(2) || '—';
-    document.getElementById('accZ').textContent = last.acc_z?.toFixed(2) || '—';
-    
-    // ML8511
-    document.getElementById('uvRaw').textContent = last.uv_raw || '—';
-    document.getElementById('uvIndex').textContent = last.uv_index?.toFixed(1) || '—';
-    
-    // AD8232
-    document.getElementById('ecgRaw').textContent = last.ecg_raw || '—';
-    
-    // MQ135
-    if (last.gas_raw) {
-        document.getElementById('gasRaw2').textContent = last.gas_raw;
-        const ppm = Math.round(last.gas_raw * (3.3 / 4095) * 100);
-        document.getElementById('gasPPM2').textContent = ppm;
-    }
-    
-    document.getElementById('deviceInfo2').innerHTML = `🆔 ${last.device_id}`;
-    document.getElementById('lastUpdate2').innerHTML = `🕐 ${new Date(last.created_at).toLocaleString()}`;
 }
 
 function updateHistory(data) {
@@ -142,6 +132,7 @@ function updateHistory(data) {
                 <th>Давл</th>
                 <th>Газ</th>
                 <th>UV</th>
+                <th>ЭКГ</th>
             </tr>
     `;
     
@@ -154,22 +145,12 @@ function updateHistory(data) {
             <td>${row.pressure?.toFixed(1) || '—'}</td>
             <td>${row.gas_raw || '—'}</td>
             <td>${row.uv_index?.toFixed(1) || '—'}</td>
+            <td>${row.ecg_raw || '—'}</td>
         </tr>`;
     });
     tableHtml += '</table>';
     
     document.getElementById('historyTable').innerHTML = tableHtml;
-}
-
-function updateStats(data) {
-    const count = data.length;
-    const last = data[0]?.created_at ? new Date(data[0].created_at).toLocaleString() : '—';
-    
-    document.getElementById('stats').innerHTML = `
-        Всего записей: ${count}<br>
-        Последнее обновление: ${last}<br>
-        Устройств: ${new Set(data.map(d => d.device_id)).size}
-    `;
 }
 
 // Запуск
