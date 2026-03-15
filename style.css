@@ -12,7 +12,6 @@ h1 {
     margin-bottom: 20px;
 }
 
-/* Вкладки */
 .tabs {
     display: flex;
     gap: 5px;
@@ -52,7 +51,6 @@ h1 {
     display: block;
 }
 
-/* Статус */
 .status {
     background: white;
     padding: 8px 15px;
@@ -64,7 +62,6 @@ h1 {
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-/* Карточка датчика */
 .sensor-card {
     background: white;
     padding: 15px 20px;
@@ -109,7 +106,6 @@ h1 {
     color: #999;
 }
 
-/* Вертикальные графики */
 .charts-vertical {
     display: flex;
     flex-direction: column;
@@ -142,7 +138,6 @@ h1 {
     width: 100% !important;
 }
 
-/* Цвета для графиков BME280 */
 #tempChart {
     border-left: 3px solid #FF6B6B;
 }
@@ -155,7 +150,6 @@ h1 {
     border-left: 3px solid #9B59B6;
 }
 
-/* Цвета для других графиков */
 #accChart {
     border-left: 3px solid #4ECDC4;
 }
@@ -172,7 +166,6 @@ h1 {
     border-left: 3px solid #007AFF;
 }
 
-/* Контейнер для большого графика */
 .chart-container {
     background: white;
     padding: 15px;
@@ -182,7 +175,6 @@ h1 {
     height: 300px;
 }
 
-/* Информационная строка */
 .info-row {
     display: flex;
     gap: 15px;
@@ -196,7 +188,6 @@ h1 {
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-/* Таблица истории */
 .table-container {
     background: white;
     border-radius: 12px;
@@ -219,9 +210,6 @@ th {
     padding: 10px;
     text-align: left;
     font-weight: 500;
-    position: sticky;
-    top: 0;
-    z-index: 10;
 }
 
 td {
@@ -230,10 +218,9 @@ td {
 }
 
 tr:hover {
-    filter: brightness(0.98);
+    background: #f9f9f9;
 }
 
-/* Карточка настроек */
 .settings-card {
     background: white;
     border-radius: 12px;
@@ -260,104 +247,12 @@ hr {
     margin: 15px 0;
 }
 
-/* Заголовки вкладок */
 h2 {
     color: #333;
     font-size: 18px;
     margin: 0 0 15px 0;
 }
 
-/* ===== СТИЛИ ДЛЯ 3D ===== */
-/* Стили для 3D куба */
-.mpu-controls {
-    margin-bottom: 20px;
-}
-
-.reset-btn {
-    background: #007AFF;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: background 0.2s;
-}
-
-.reset-btn:hover {
-    background: #0056b3;
-}
-
-.cube-container {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    height: 400px;
-    width: 100%;
-    margin-top: 15px;
-    margin-bottom: 20px;
-}
-
-#cube3d {
-    width: 100%;
-    height: 100%;
-    position: relative;
-}
-
-/* Стили для карточки MPU6050 в 3D вкладке */
-#mpu3d .sensor-card {
-    background: linear-gradient(to bottom, #ffffff, #f8f9fa);
-    border-left: 4px solid #007AFF;
-}
-
-#mpu3d .sensor-values {
-    background: #f8f9fa;
-    padding: 10px;
-    border-radius: 8px;
-    margin: 5px 0;
-}
-
-#mpu3d .sensor-value-item .value {
-    color: #007AFF;
-    font-size: 20px;
-}
-
-#mpu3d .reset-btn {
-    flex: 1;
-    font-weight: 500;
-    text-transform: uppercase;
-    font-size: 12px;
-    letter-spacing: 0.5px;
-}
-
-#mpu3d .reset-btn:first-child {
-    background: #FF6B6B;
-}
-
-#mpu3d .reset-btn:first-child:hover {
-    background: #ff5252;
-}
-
-/* Адаптивность для 3D */
-@media (max-width: 600px) {
-    .cube-container {
-        height: 300px;
-        padding: 10px;
-    }
-    
-    #mpu3d .sensor-values {
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    #mpu3d .reset-btn {
-        padding: 6px 12px;
-        font-size: 11px;
-    }
-}
-
-/* Адаптивность для мобильных */
 @media (max-width: 600px) {
     body {
         padding: 10px;
