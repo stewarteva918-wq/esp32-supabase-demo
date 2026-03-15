@@ -6,12 +6,7 @@ let charts = {
     acc: null, uv: null, ecg: null, gas: null
 };
 
-let historyData = {
-    temp: [], hum: [], pres: [],
-    accX: [], accY: [], accZ: [],
-    uv: [], ecg: [],
-    gas: [], labels: []
-};
+let allData = []; // Глобальное хранилище данных
 
 window.openTab = function(tabName) {
     document.querySelectorAll('.tab-content').forEach(tab => {
@@ -32,25 +27,11 @@ async function loadData() {
         );
         const data = await response.json();
         
+        // Сохраняем все данные глобально
+        allData = data;
+        
         // Сортируем по времени
         const sortedData = data.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-        const last20 = sortedData.slice(-20);
-        
-        // Обновляем историю для графиков
-        historyData.labels = last20.map(row => {
-            const d = new Date(row.created_at);
-            return `${d.getHours()}:${d.getMinutes()}`;
-        });
-        
-        historyData.temp = last20.map(row => row.temperature || 0);
-        historyData.hum = last20.map(row => row.humidity || 0);
-        historyData.pres = last20.map(row => row.pressure || 0);
-        historyData.accX = last20.map(row => row.acc_x || 0);
-        historyData.accY = last20.map(row => row.acc_y || 0);
-        historyData.accZ = last20.map(row => row.acc_z || 0);
-        historyData.uv = last20.map(row => row.uv_index || 0);
-        historyData.ecg = last20.map(row => row.ecg_raw || 0);
-        historyData.gas = last20.map(row => row.gas_raw ? Math.round(row.gas_raw * (3.3 / 4095) * 100) : 0);
         
         // Последние данные от всех датчиков
         const lastAllSensors = sortedData.filter(row => row.device_id === 'esp32_all_sensors').pop() || {};
@@ -82,8 +63,8 @@ async function loadData() {
         document.getElementById('lastUpdate').innerHTML = `🕐 ${lastAny.created_at ? new Date(lastAny.created_at).toLocaleString() : '—'}`;
         document.getElementById('connectionStatus').innerHTML = '✅ Онлайн';
         
-        // Обновляем все графики
-        updateAllCharts();
+        // Обновляем все графики с разделением по устройствам
+        updateAllChartsSeparated();
         
         // Обновляем историю с разделением по устройствам
         updateHistory(sortedData.slice(-100).reverse());
@@ -94,21 +75,45 @@ async function loadData() {
     }
 }
 
-function updateAllCharts() {
-    // График температуры
+// ===== ОБНОВЛЕННАЯ ФУНКЦИЯ ГРАФИКОВ С РАЗДЕЛЕНИЕМ =====
+function updateAllChartsSeparated() {
+    // Получаем последние 20 записей ТОЛЬКО от всех датчиков (не газ)
+    const allSensorsData = allData.filter(row => 
+        row.device_id === 'esp32_all_sensors'
+    ).sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(-20);
+    
+    // Получаем последние 20 записей ТОЛЬКО от газовой платы
+    const gasData = allData.filter(row => 
+        row.device_id === 'esp32_mq135' || row.gas_raw > 100
+    ).sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(-20);
+    
+    // Метки времени для графиков всех датчиков
+    const allSensorsLabels = allSensorsData.map(row => {
+        const d = new Date(row.created_at);
+        return `${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
+    });
+    
+    // Метки времени для графиков газа
+    const gasLabels = gasData.map(row => {
+        const d = new Date(row.created_at);
+        return `${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
+    });
+    
+    // ===== ГРАФИК ТЕМПЕРАТУРЫ (только от всех датчиков) =====
+    const tempValues = allSensorsData.map(row => row.temperature || 0);
     const tempCtx = document.getElementById('tempChart')?.getContext('2d');
     if (tempCtx) {
         if (charts.temp) charts.temp.destroy();
         charts.temp = new Chart(tempCtx, {
             type: 'line',
             data: {
-                labels: historyData.labels,
+                labels: allSensorsLabels,
                 datasets: [{
-                    data: historyData.temp,
+                    data: tempValues,
                     borderColor: '#FF6B6B',
                     borderWidth: 2,
                     fill: false,
-                    pointRadius: 1,
+                    pointRadius: 2,
                     tension: 0.3
                 }]
             },
@@ -121,20 +126,21 @@ function updateAllCharts() {
         });
     }
 
-    // График влажности
+    // ===== ГРАФИК ВЛАЖНОСТИ (только от всех датчиков) =====
+    const humValues = allSensorsData.map(row => row.humidity || 0);
     const humCtx = document.getElementById('humChart')?.getContext('2d');
     if (humCtx) {
         if (charts.hum) charts.hum.destroy();
         charts.hum = new Chart(humCtx, {
             type: 'line',
             data: {
-                labels: historyData.labels,
+                labels: allSensorsLabels,
                 datasets: [{
-                    data: historyData.hum,
+                    data: humValues,
                     borderColor: '#4ECDC4',
                     borderWidth: 2,
                     fill: false,
-                    pointRadius: 1,
+                    pointRadius: 2,
                     tension: 0.3
                 }]
             },
@@ -147,20 +153,21 @@ function updateAllCharts() {
         });
     }
 
-    // График давления
+    // ===== ГРАФИК ДАВЛЕНИЯ (только от всех датчиков) =====
+    const presValues = allSensorsData.map(row => row.pressure || 0);
     const presCtx = document.getElementById('presChart')?.getContext('2d');
     if (presCtx) {
         if (charts.pres) charts.pres.destroy();
         charts.pres = new Chart(presCtx, {
             type: 'line',
             data: {
-                labels: historyData.labels,
+                labels: allSensorsLabels,
                 datasets: [{
-                    data: historyData.pres,
+                    data: presValues,
                     borderColor: '#9B59B6',
                     borderWidth: 2,
                     fill: false,
-                    pointRadius: 1,
+                    pointRadius: 2,
                     tension: 0.3
                 }]
             },
@@ -173,18 +180,36 @@ function updateAllCharts() {
         });
     }
 
-    // График акселерометра
-    const accCtx = document.getElementById('accChart')?.getContext('2d');
-    if (accCtx) {
+    // ===== ГРАФИК АКСЕЛЕРОМЕТРА (только от всех датчиков) =====
+    const accXCtx = document.getElementById('accChart')?.getContext('2d');
+    if (accXCtx) {
         if (charts.acc) charts.acc.destroy();
-        charts.acc = new Chart(accCtx, {
+        charts.acc = new Chart(accXCtx, {
             type: 'line',
             data: {
-                labels: historyData.labels,
+                labels: allSensorsLabels,
                 datasets: [
-                    { data: historyData.accX, borderColor: '#4ECDC4', borderWidth: 1.5, pointRadius: 1 },
-                    { data: historyData.accY, borderColor: '#FFE66D', borderWidth: 1.5, pointRadius: 1 },
-                    { data: historyData.accZ, borderColor: '#FF9F1C', borderWidth: 1.5, pointRadius: 1 }
+                    { 
+                        data: allSensorsData.map(row => row.acc_x || 0), 
+                        borderColor: '#4ECDC4', 
+                        borderWidth: 1.5, 
+                        pointRadius: 1,
+                        label: 'X'
+                    },
+                    { 
+                        data: allSensorsData.map(row => row.acc_y || 0), 
+                        borderColor: '#FFE66D', 
+                        borderWidth: 1.5, 
+                        pointRadius: 1,
+                        label: 'Y'
+                    },
+                    { 
+                        data: allSensorsData.map(row => row.acc_z || 0), 
+                        borderColor: '#FF9F1C', 
+                        borderWidth: 1.5, 
+                        pointRadius: 1,
+                        label: 'Z'
+                    }
                 ]
             },
             options: {
@@ -196,20 +221,21 @@ function updateAllCharts() {
         });
     }
 
-    // График UV
+    // ===== ГРАФИК UV (только от всех датчиков) =====
+    const uvValues = allSensorsData.map(row => row.uv_index || 0);
     const uvCtx = document.getElementById('uvChart')?.getContext('2d');
     if (uvCtx) {
         if (charts.uv) charts.uv.destroy();
         charts.uv = new Chart(uvCtx, {
             type: 'line',
             data: {
-                labels: historyData.labels,
+                labels: allSensorsLabels,
                 datasets: [{
-                    data: historyData.uv,
+                    data: uvValues,
                     borderColor: '#9B59B6',
                     borderWidth: 2,
                     fill: false,
-                    pointRadius: 1,
+                    pointRadius: 2,
                     tension: 0.3
                 }]
             },
@@ -222,20 +248,21 @@ function updateAllCharts() {
         });
     }
 
-    // График ЭКГ
+    // ===== ГРАФИК ЭКГ (только от всех датчиков) =====
+    const ecgValues = allSensorsData.map(row => row.ecg_raw || 0);
     const ecgCtx = document.getElementById('ecgChart')?.getContext('2d');
     if (ecgCtx) {
         if (charts.ecg) charts.ecg.destroy();
         charts.ecg = new Chart(ecgCtx, {
             type: 'line',
             data: {
-                labels: historyData.labels,
+                labels: allSensorsLabels,
                 datasets: [{
-                    data: historyData.ecg,
+                    data: ecgValues,
                     borderColor: '#2ECC71',
                     borderWidth: 2,
                     fill: false,
-                    pointRadius: 1,
+                    pointRadius: 2,
                     tension: 0.3
                 }]
             },
@@ -248,21 +275,23 @@ function updateAllCharts() {
         });
     }
 
-    // График газа
+    // ===== ГРАФИК ГАЗА (только от газовой платы) =====
+    const gasValues = gasData.map(row => row.gas_raw ? Math.round(row.gas_raw * (3.3 / 4095) * 100) : 0);
     const gasCtx = document.getElementById('gasChart')?.getContext('2d');
     if (gasCtx) {
         if (charts.gas) charts.gas.destroy();
         charts.gas = new Chart(gasCtx, {
             type: 'line',
             data: {
-                labels: historyData.labels,
+                labels: gasLabels,
                 datasets: [{
-                    data: historyData.gas,
+                    data: gasValues,
                     borderColor: '#007AFF',
                     backgroundColor: 'rgba(0,122,255,0.1)',
                     borderWidth: 2,
                     fill: true,
-                    pointRadius: 2
+                    pointRadius: 2,
+                    tension: 0.3
                 }]
             },
             options: {
