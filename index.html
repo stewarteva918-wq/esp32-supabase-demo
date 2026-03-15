@@ -23,7 +23,7 @@
         <div id="main" class="tab-content active">
             <div class="status" id="connectionStatus">Загрузка...</div>
             
-            <!-- BME280 с тремя графиками -->
+            <!-- BME280 -->
             <div class="sensor-card">
                 <div class="sensor-name">🌡️ BME280</div>
                 <div class="sensor-values">
@@ -40,16 +40,25 @@
                         <span class="unit">hPa</span>
                     </div>
                 </div>
-                <!-- Три графика в ряд -->
-                <div class="charts-row">
-                    <div class="mini-chart">
-                        <canvas id="tempChart"></canvas>
+                <!-- Три графика вертикально -->
+                <div class="charts-vertical">
+                    <div class="chart-item">
+                        <div class="chart-label">Температура</div>
+                        <div class="mini-chart">
+                            <canvas id="tempChart"></canvas>
+                        </div>
                     </div>
-                    <div class="mini-chart">
-                        <canvas id="humChart"></canvas>
+                    <div class="chart-item">
+                        <div class="chart-label">Влажность</div>
+                        <div class="mini-chart">
+                            <canvas id="humChart"></canvas>
+                        </div>
                     </div>
-                    <div class="mini-chart">
-                        <canvas id="presChart"></canvas>
+                    <div class="chart-item">
+                        <div class="chart-label">Давление</div>
+                        <div class="mini-chart">
+                            <canvas id="presChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -71,8 +80,11 @@
                         <span class="unit">Z</span>
                     </div>
                 </div>
-                <div class="mini-chart">
-                    <canvas id="accChart"></canvas>
+                <div class="chart-item">
+                    <div class="chart-label">Акселерометр</div>
+                    <div class="mini-chart">
+                        <canvas id="accChart"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -89,8 +101,11 @@
                         <span class="unit">индекс</span>
                     </div>
                 </div>
-                <div class="mini-chart">
-                    <canvas id="uvChart"></canvas>
+                <div class="chart-item">
+                    <div class="chart-label">UV индекс</div>
+                    <div class="mini-chart">
+                        <canvas id="uvChart"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -103,8 +118,11 @@
                         <span class="unit">RAW</span>
                     </div>
                 </div>
-                <div class="mini-chart">
-                    <canvas id="ecgChart"></canvas>
+                <div class="chart-item">
+                    <div class="chart-label">ЭКГ сигнал</div>
+                    <div class="mini-chart">
+                        <canvas id="ecgChart"></canvas>
+                    </div>
                 </div>
             </div>
 
