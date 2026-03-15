@@ -11,62 +11,84 @@ window.openTab = function(tabName) {
     document.getElementById(tabName).classList.add('active');
     event.target.classList.add('active');
     
-    if (tabName === 'mpu3d' && renderer) {
+    // Перерисовываем 3D при открытии вкладки
+    if (tabName === 'mpu3d' && renderer && scene && camera) {
         setTimeout(() => {
             const container = document.getElementById('cube3d');
-            if (container) {
+            if (container && container.clientWidth > 0) {
                 renderer.setSize(container.clientWidth, 400);
                 renderer.render(scene, camera);
             }
-        }, 100);
+        }, 200);
     }
 }
 
 function init3D() {
+    console.log('🎮 Инициализация 3D...');
     const container = document.getElementById('cube3d');
-    if (!container) return;
+    if (!container) {
+        console.log('❌ Контейнер cube3d не найден');
+        return;
+    }
     
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a1a2e);
-    
-    camera = new THREE.PerspectiveCamera(75, container.clientWidth / 400, 0.1, 1000);
-    camera.position.z = 8;
-    
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(container.clientWidth, 400);
-    renderer.shadowMap.enabled = true;
-    container.innerHTML = '';
-    container.appendChild(renderer.domElement);
-    
-    // Красивый куб с градиентом
-    const geometry = new THREE.BoxGeometry(3, 1, 2);
-    const materials = [
-        new THREE.MeshStandardMaterial({ color: 0x00a8ff, emissive: 0x002244 }), // правая
-        new THREE.MeshStandardMaterial({ color: 0x0097e6, emissive: 0x002244 }), // левая
-        new THREE.MeshStandardMaterial({ color: 0x00a8ff, emissive: 0x002244 }), // верх
-        new THREE.MeshStandardMaterial({ color: 0x0097e6, emissive: 0x002244 }), // низ
-        new THREE.MeshStandardMaterial({ color: 0x00d2ff, emissive: 0x002244 }), // перед
-        new THREE.MeshStandardMaterial({ color: 0x00b8ff, emissive: 0x002244 })  // зад
-    ];
-    
-    cube = new THREE.Mesh(geometry, materials);
-    cube.castShadow = true;
-    cube.receiveShadow = true;
-    scene.add(cube);
-    
-    // Добавим оси для красоты
-    const axesHelper = new THREE.AxesHelper(5);
-    scene.add(axesHelper);
-    
-    // Свет
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(5, 5, 5);
-    scene.add(light);
-    
-    const ambientLight = new THREE.AmbientLight(0x404040);
-    scene.add(ambientLight);
-    
-    renderer.render(scene, camera);
+    try {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a2e);
+        
+        camera = new THREE.PerspectiveCamera(75, container.clientWidth / 400, 0.1, 1000);
+        camera.position.set(5, 5, 5);
+        camera.lookAt(0, 0, 0);
+        
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, 400);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.setPixelRatio(window.devicePixelRatio);
+        
+        container.innerHTML = '';
+        container.appendChild(renderer.domElement);
+        
+        // Красивый куб
+        const geometry = new THREE.BoxGeometry(3, 1, 2);
+        const materials = [
+            new THREE.MeshStandardMaterial({ color: 0xff6b6b, emissive: 0x330000 }), // правая
+            new THREE.MeshStandardMaterial({ color: 0x4ecdc4, emissive: 0x003333 }), // левая
+            new THREE.MeshStandardMaterial({ color: 0x45b7d1, emissive: 0x003344 }), // верх
+            new THREE.MeshStandardMaterial({ color: 0x96ceb4, emissive: 0x003322 }), // низ
+            new THREE.MeshStandardMaterial({ color: 0xffcc5c, emissive: 0x332200 }), // перед
+            new THREE.MeshStandardMaterial({ color: 0xff6f69, emissive: 0x330000 })  // зад
+        ];
+        
+        cube = new THREE.Mesh(geometry, materials);
+        cube.castShadow = true;
+        cube.receiveShadow = true;
+        scene.add(cube);
+        
+        // Добавим оси для наглядности
+        const axesHelper = new THREE.AxesHelper(5);
+        scene.add(axesHelper);
+        
+        // Освещение
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(5, 10, 7);
+        light.castShadow = true;
+        light.shadow.mapSize.width = 1024;
+        light.shadow.mapSize.height = 1024;
+        scene.add(light);
+        
+        const ambientLight = new THREE.AmbientLight(0x404060);
+        scene.add(ambientLight);
+        
+        // Пол
+        const gridHelper = new THREE.GridHelper(10, 20, 0x888888, 0x444444);
+        scene.add(gridHelper);
+        
+        renderer.render(scene, camera);
+        console.log('✅ 3D инициализирован');
+        
+    } catch (e) {
+        console.log('❌ Ошибка 3D:', e);
+    }
 }
 
 async function loadData() {
@@ -74,54 +96,108 @@ async function loadData() {
         const response = await fetch(`${SUPABASE_URL}/rest/v1/sensor_readings?select=*&apikey=${SUPABASE_KEY}`);
         const data = await response.json();
         
-        // Берем ТОЛЬКО данные от одной платы (последние)
-        const espData = data.filter(row => row.device_id === 'esp32_all_sensors');
-        if (espData.length === 0) return;
+        // Разделяем данные по устройствам
+        const allSensorsData = data.filter(row => row.device_id === 'esp32_all_sensors')
+            .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        const gasData = data.filter(row => row.device_id === 'esp32_mq135' || row.gas_raw > 100)
+            .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
         
-        const sortedData = espData.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-        const last = sortedData[sortedData.length - 1];
-        const last20 = sortedData.slice(-20);
-        
-        // Обновляем графики (теперь только от одной платы - скачков нет!)
-        historyData.labels = last20.map(row => {
-            const d = new Date(row.created_at);
-            return `${d.getHours()}:${d.getMinutes()}`;
-        });
-        
-        historyData.temp = last20.map(row => row.temperature || 0);
-        historyData.hum = last20.map(row => row.humidity || 0);
-        historyData.pres = last20.map(row => row.pressure || 0);
-        historyData.uv = last20.map(row => row.uv_index || 0);
-        historyData.ecg = last20.map(row => row.ecg_raw || 0);
-        
-        // Обновляем главную
-        document.getElementById('temp').textContent = last.temperature?.toFixed(1) || '—';
-        document.getElementById('hum').textContent = last.humidity?.toFixed(1) || '—';
-        document.getElementById('pres').textContent = last.pressure?.toFixed(1) || '—';
-        document.getElementById('uvRaw').textContent = last.uv_raw || '—';
-        document.getElementById('uvIndex').textContent = last.uv_index?.toFixed(1) || '—';
-        document.getElementById('ecgRaw').textContent = last.ecg_raw || '—';
-        
-        // Обновляем 3D
-        if (last.gyro_x !== undefined && cube) {
-            document.getElementById('gyroX').textContent = last.gyro_x?.toFixed(2) || '—';
-            document.getElementById('gyroY').textContent = last.gyro_y?.toFixed(2) || '—';
-            document.getElementById('gyroZ').textContent = last.gyro_z?.toFixed(2) || '—';
-            document.getElementById('accX').textContent = last.acc_x?.toFixed(2) || '—';
-            document.getElementById('accY').textContent = last.acc_y?.toFixed(2) || '—';
-            document.getElementById('accZ').textContent = last.acc_z?.toFixed(2) || '—';
+        if (allSensorsData.length > 0) {
+            const last = allSensorsData[allSensorsData.length - 1];
+            const last20 = allSensorsData.slice(-20);
             
-            cube.rotation.x = last.gyro_y || 0;
-            cube.rotation.y = last.gyro_z || 0;
-            cube.rotation.z = last.gyro_x || 0;
-            renderer.render(scene, camera);
+            // Обновляем графики
+            historyData.labels = last20.map(row => {
+                const d = new Date(row.created_at);
+                return `${d.getHours()}:${d.getMinutes()}`;
+            });
+            
+            historyData.temp = last20.map(row => row.temperature || 0);
+            historyData.hum = last20.map(row => row.humidity || 0);
+            historyData.pres = last20.map(row => row.pressure || 0);
+            historyData.uv = last20.map(row => row.uv_index || 0);
+            historyData.ecg = last20.map(row => row.ecg_raw || 0);
+            
+            // Обновляем главную
+            document.getElementById('temp').textContent = last.temperature?.toFixed(1) || '—';
+            document.getElementById('hum').textContent = last.humidity?.toFixed(1) || '—';
+            document.getElementById('pres').textContent = last.pressure?.toFixed(1) || '—';
+            document.getElementById('uvRaw').textContent = last.uv_raw || '—';
+            document.getElementById('uvIndex').textContent = last.uv_index?.toFixed(1) || '—';
+            document.getElementById('ecgRaw').textContent = last.ecg_raw || '—';
+            
+            // Обновляем 3D (данные MPU6050)
+            if (last.gyro_x !== undefined && cube) {
+                document.getElementById('gyroX').textContent = last.gyro_x?.toFixed(2) || '—';
+                document.getElementById('gyroY').textContent = last.gyro_y?.toFixed(2) || '—';
+                document.getElementById('gyroZ').textContent = last.gyro_z?.toFixed(2) || '—';
+                document.getElementById('accX').textContent = last.acc_x?.toFixed(2) || '—';
+                document.getElementById('accY').textContent = last.acc_y?.toFixed(2) || '—';
+                document.getElementById('accZ').textContent = last.acc_z?.toFixed(2) || '—';
+                
+                cube.rotation.x = last.gyro_y || 0;
+                cube.rotation.y = last.gyro_z || 0;
+                cube.rotation.z = last.gyro_x || 0;
+                
+                if (renderer && scene && camera) {
+                    renderer.render(scene, camera);
+                }
+            }
+            
+            document.getElementById('connectionStatus').innerHTML = '✅ Онлайн';
+            document.getElementById('lastUpdate').innerHTML = `🕐 ${new Date(last.created_at).toLocaleString()}`;
+            
+            updateCharts();
         }
         
-        document.getElementById('connectionStatus').innerHTML = '✅ Онлайн';
-        document.getElementById('lastUpdate').innerHTML = `🕐 ${new Date(last.created_at).toLocaleString()}`;
+        // Обновляем газ (отдельная плата)
+        if (gasData.length > 0) {
+            const lastGas = gasData[gasData.length - 1];
+            const gasHistory = gasData.slice(-20);
+            
+            document.getElementById('gasRaw').textContent = lastGas.gas_raw || '—';
+            if (lastGas.gas_raw) {
+                const ppm = Math.round(lastGas.gas_raw * (3.3 / 4095) * 100);
+                document.getElementById('gasPPM').textContent = ppm;
+            }
+            
+            // График газа
+            const gasLabels = gasHistory.map(row => {
+                const d = new Date(row.created_at);
+                return `${d.getHours()}:${d.getMinutes()}`;
+            });
+            const gasValues = gasHistory.map(row => 
+                row.gas_raw ? Math.round(row.gas_raw * (3.3 / 4095) * 100) : 0
+            );
+            
+            const gasCtx = document.getElementById('gasChart')?.getContext('2d');
+            if (gasCtx) {
+                if (charts.gas) charts.gas.destroy();
+                charts.gas = new Chart(gasCtx, {
+                    type: 'line',
+                    data: {
+                        labels: gasLabels,
+                        datasets: [{
+                            data: gasValues,
+                            borderColor: '#007AFF',
+                            backgroundColor: 'rgba(0,122,255,0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            pointRadius: 2,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+        }
         
-        // Обновляем графики
-        updateCharts();
+        // Обновляем историю
+        updateHistory(data);
         
     } catch (error) {
         console.log(error);
@@ -236,9 +312,62 @@ function updateCharts() {
     }
 }
 
+function updateHistory(data) {
+    const allData = data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    
+    let tableHtml = `
+        <table>
+            <tr>
+                <th>Время</th>
+                <th>Устройство</th>
+                <th>Темп</th>
+                <th>Влаж</th>
+                <th>Давл</th>
+                <th>UV</th>
+                <th>ЭКГ</th>
+                <th>Газ RAW</th>
+                <th>Газ PPM</th>
+            </tr>
+    `;
+    
+    allData.slice(0, 30).forEach(row => {
+        const deviceType = row.device_id === 'esp32_all_sensors' ? '📊 Все' : '💨 Газ';
+        const bgColor = row.device_id === 'esp32_all_sensors' ? '#f0f7ff' : '#fff5e6';
+        
+        let gasPPM = '—';
+        if (row.gas_raw && row.gas_raw > 100) {
+            gasPPM = Math.round(row.gas_raw * (3.3 / 4095) * 100);
+        }
+        
+        tableHtml += `<tr style="background: ${bgColor}">
+            <td>${new Date(row.created_at).toLocaleString()}</td>
+            <td><strong>${deviceType}</strong></td>
+            <td>${row.temperature?.toFixed(1) || '—'}</td>
+            <td>${row.humidity?.toFixed(1) || '—'}</td>
+            <td>${row.pressure?.toFixed(1) || '—'}</td>
+            <td>${row.uv_index?.toFixed(1) || '—'}</td>
+            <td>${row.ecg_raw || '—'}</td>
+            <td>${row.gas_raw || '—'}</td>
+            <td>${gasPPM}</td>
+        </tr>`;
+    });
+    tableHtml += '</table>';
+    
+    document.getElementById('historyTable').innerHTML = tableHtml;
+}
+
 // Запуск
 document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(init3D, 500);
+    console.log('🚀 Запуск...');
+    setTimeout(init3D, 1000);
     loadData();
     setInterval(loadData, 30000);
+});
+
+// Кнопки сброса
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('reset-btn')) {
+        const id = e.target.id;
+        fetch(`/${id}`).catch(err => console.log(err));
+    }
 });
