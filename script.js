@@ -39,7 +39,7 @@ async function loadData() {
         // Обновляем историю для графиков
         historyData.labels = last20.map(row => {
             const d = new Date(row.created_at);
-            return `${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
+            return `${d.getHours()}:${d.getMinutes()}`;
         });
         
         historyData.temp = last20.map(row => row.temperature || 0);
