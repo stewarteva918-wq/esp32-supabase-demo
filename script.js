@@ -315,6 +315,74 @@ function updateHistory(data) {
     document.getElementById('historyTable').innerHTML = tableHtml;
 }
 
-// Запуск с обновлением КАЖДЫЕ 5 СЕКУНД!
+// Функция скачивания данных в CSV
+function downloadDataAsCSV() {
+    const btn = document.getElementById('downloadCSV');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ Подготовка...';
+    btn.disabled = true;
+    
+    setTimeout(async () => {
+        try {
+            const response = await fetch(
+                `${SUPABASE_URL}/rest/v1/sensor_readings?select=*&apikey=${SUPABASE_KEY}`
+            );
+            const data = await response.json();
+            
+            const sortedData = data.sort((a, b) => 
+                new Date(b.created_at) - new Date(a.created_at)
+            );
+            
+            let csv = 'Время;Устройство;Температура (°C);Влажность (%);Давление (hPa);UV индекс;ЭКГ (RAW);Газ (RAW);Газ (PPM);Acc X;Acc Y;Acc Z\n';
+            
+            sortedData.forEach(row => {
+                const date = new Date(row.created_at).toLocaleString();
+                const device = row.device_id === 'esp32_all_sensors' ? 'Все датчики' : 'Газ';
+                const temp = row.temperature?.toFixed(1) || '';
+                const hum = row.humidity?.toFixed(1) || '';
+                const pres = row.pressure?.toFixed(1) || '';
+                const uv = row.uv_index?.toFixed(1) || '';
+                const ecg = row.ecg_raw || '';
+                const gasRaw = row.gas_raw || '';
+                const gasPPM = row.gas_raw ? Math.round(row.gas_raw * (3.3 / 4095) * 100) : '';
+                const accX = row.acc_x?.toFixed(2) || '';
+                const accY = row.acc_y?.toFixed(2) || '';
+                const accZ = row.acc_z?.toFixed(2) || '';
+                
+                csv += `${date};${device};${temp};${hum};${pres};${uv};${ecg};${gasRaw};${gasPPM};${accX};${accY};${accZ}\n`;
+            });
+            
+            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            const now = new Date();
+            const filename = `esp32_data_${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}.csv`;
+            
+            link.href = url;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            btn.innerHTML = '✅ Скачано!';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Ошибка при скачивании:', error);
+            btn.innerHTML = '❌ Ошибка';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 2000);
+        }
+    }, 100);
+}
+
+// Запуск
 loadData();
 setInterval(loadData, 5000);
