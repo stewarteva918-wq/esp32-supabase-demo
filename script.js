@@ -3,15 +3,18 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 let charts = {
     temp: null, hum: null, pres: null,
-    acc: null, uv: null, ecg: null, gas: null
+    uv: null, ecg: null, gas: null
 };
 
 let historyData = {
     temp: [], hum: [], pres: [],
-    accX: [], accY: [], accZ: [],
     uv: [], ecg: [],
     gas: [], labels: []
 };
+
+// 3D переменные
+let scene, camera, renderer, cube;
+let gyroX = 0, gyroY = 0, gyroZ = 0;
 
 window.openTab = function(tabName) {
     document.querySelectorAll('.tab-content').forEach(tab => {
@@ -23,6 +26,55 @@ window.openTab = function(tabName) {
     
     document.getElementById(tabName).classList.add('active');
     event.target.classList.add('active');
+    
+    // Перерисовываем 3D при переключении на вкладку
+    if (tabName === 'mpu3d' && cube && renderer) {
+        setTimeout(() => {
+            renderer.setSize(document.getElementById('cube3d').clientWidth, 400);
+            renderer.render(scene, camera);
+        }, 100);
+    }
+}
+
+// Инициализация 3D
+function init3D() {
+    const container = document.getElementById('cube3d');
+    if (!container) return;
+    
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xffffff);
+    
+    camera = new THREE.PerspectiveCamera(75, container.clientWidth / 400, 0.1, 1000);
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, 400);
+    container.appendChild(renderer.domElement);
+    
+    // Создаем куб в форме MPU6050
+    const geometry = new THREE.BoxGeometry(5, 1, 4);
+    const materials = [
+        new THREE.MeshBasicMaterial({ color: 0x03045e }), // правая
+        new THREE.MeshBasicMaterial({ color: 0x023e8a }), // левая
+        new THREE.MeshBasicMaterial({ color: 0x0077b6 }), // верх
+        new THREE.MeshBasicMaterial({ color: 0x03045e }), // низ
+        new THREE.MeshBasicMaterial({ color: 0x023e8a }), // перед
+        new THREE.MeshBasicMaterial({ color: 0x0077b6 })  // зад
+    ];
+    
+    cube = new THREE.Mesh(geometry, materials);
+    scene.add(cube);
+    camera.position.z = 10;
+    
+    renderer.render(scene, camera);
+    
+    // Обработка ресайза
+    window.addEventListener('resize', () => {
+        if (document.getElementById('mpu3d').classList.contains('active')) {
+            camera.aspect = container.clientWidth / 400;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, 400);
+            renderer.render(scene, camera);
+        }
+    });
 }
 
 async function loadData() {
@@ -45,9 +97,6 @@ async function loadData() {
         historyData.temp = last20.map(row => row.temperature || 0);
         historyData.hum = last20.map(row => row.humidity || 0);
         historyData.pres = last20.map(row => row.pressure || 0);
-        historyData.accX = last20.map(row => row.acc_x || 0);
-        historyData.accY = last20.map(row => row.acc_y || 0);
-        historyData.accZ = last20.map(row => row.acc_z || 0);
         historyData.uv = last20.map(row => row.uv_index || 0);
         historyData.ecg = last20.map(row => row.ecg_raw || 0);
         historyData.gas = last20.map(row => row.gas_raw ? Math.round(row.gas_raw * (3.3 / 4095) * 100) : 0);
@@ -60,9 +109,39 @@ async function loadData() {
         document.getElementById('hum').textContent = last.humidity?.toFixed(1) || '—';
         document.getElementById('pres').textContent = last.pressure?.toFixed(1) || '—';
         
-        document.getElementById('accX').textContent = last.acc_x?.toFixed(2) || '—';
-        document.getElementById('accY').textContent = last.acc_y?.toFixed(2) || '—';
-        document.getElementById('accZ').textContent = last.acc_z?.toFixed(2) || '—';
+        // MPU6050 данные для 3D
+        if (last.acc_x) {
+            document.getElementById('accX').textContent = last.acc_x?.toFixed(2) || '—';
+            document.getElementById('accY').textContent = last.acc_y?.toFixed(2) || '—';
+            document.getElementById('accZ').textContent = last.acc_z?.toFixed(2) || '—';
+            
+            // Обновляем 3D куб (используем гироскоп если есть, иначе акселерометр)
+            if (last.gyro_x) {
+                gyroX = last.gyro_x;
+                gyroY = last.gyro_y;
+                gyroZ = last.gyro_z;
+                
+                document.getElementById('gyroX').textContent = gyroX?.toFixed(2) || '—';
+                document.getElementById('gyroY').textContent = gyroY?.toFixed(2) || '—';
+                document.getElementById('gyroZ').textContent = gyroZ?.toFixed(2) || '—';
+            } else {
+                // Если нет гироскопа, используем акселерометр
+                gyroX = last.acc_x / 10;
+                gyroY = last.acc_y / 10;
+                gyroZ = last.acc_z / 10;
+                
+                document.getElementById('gyroX').textContent = gyroX?.toFixed(2) || '—';
+                document.getElementById('gyroY').textContent = gyroY?.toFixed(2) || '—';
+                document.getElementById('gyroZ').textContent = gyroZ?.toFixed(2) || '—';
+            }
+            
+            if (cube) {
+                cube.rotation.x = gyroY;
+                cube.rotation.y = gyroZ;
+                cube.rotation.z = gyroX;
+                renderer.render(scene, camera);
+            }
+        }
         
         document.getElementById('uvRaw').textContent = last.uv_raw || '—';
         document.getElementById('uvIndex').textContent = last.uv_index?.toFixed(1) || '—';
@@ -84,6 +163,14 @@ async function loadData() {
         
         // Обновляем историю
         updateHistory(sortedData.slice(-50).reverse());
+        
+        // Статистика
+        const count = data.length;
+        document.getElementById('stats').innerHTML = `
+            Всего записей: ${count}<br>
+            Последнее обновление: ${last.created_at ? new Date(last.created_at).toLocaleString() : '—'}<br>
+            Устройств: ${new Set(data.map(d => d.device_id)).size}
+        `;
         
     } catch (error) {
         console.log(error);
@@ -160,29 +247,6 @@ function updateAllCharts() {
                     pointRadius: 1,
                     tension: 0.3
                 }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { x: { display: false }, y: { display: false } }
-            }
-        });
-    }
-
-    // График акселерометра
-    const accCtx = document.getElementById('accChart')?.getContext('2d');
-    if (accCtx) {
-        if (charts.acc) charts.acc.destroy();
-        charts.acc = new Chart(accCtx, {
-            type: 'line',
-            data: {
-                labels: historyData.labels,
-                datasets: [
-                    { data: historyData.accX, borderColor: '#4ECDC4', borderWidth: 1.5, pointRadius: 1 },
-                    { data: historyData.accY, borderColor: '#FFE66D', borderWidth: 1.5, pointRadius: 1 },
-                    { data: historyData.accZ, borderColor: '#FF9F1C', borderWidth: 1.5, pointRadius: 1 }
-                ]
             },
             options: {
                 responsive: true,
@@ -307,6 +371,23 @@ function updateHistory(data) {
     
     document.getElementById('historyTable').innerHTML = tableHtml;
 }
+
+// Инициализация 3D после загрузки страницы
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        init3D();
+    }, 500);
+});
+
+// Обработчики кнопок сброса
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('reset-btn')) {
+        const id = e.target.id;
+        fetch(`/${id}`)
+            .then(() => console.log(`Reset ${id}`))
+            .catch(err => console.log(err));
+    }
+});
 
 // Запуск
 loadData();
