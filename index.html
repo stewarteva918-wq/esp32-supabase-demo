@@ -3,23 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32 монитор</title>
+    <title>ESP32 монитор + 3D</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>📊 ESP32 монитор</h1>
+        <h1>📊 ESP32 монитор + 3D</h1>
         
         <!-- Вкладки -->
         <div class="tabs">
             <button class="tab-button active" onclick="openTab('main')">🏠 Главная</button>
+            <button class="tab-button" onclick="openTab('mpu3d')">🎮 3D визуализация</button>
             <button class="tab-button" onclick="openTab('gas')">💨 Газ</button>
             <button class="tab-button" onclick="openTab('history')">📋 История</button>
             <button class="tab-button" onclick="openTab('settings')">ℹ️ О проекте</button>
         </div>
 
-        <!-- Главная -->
+        <!-- Главная (BME280, ML8511, AD8232) -->
         <div id="main" class="tab-content active">
             <div class="status" id="connectionStatus">Загрузка...</div>
             
@@ -40,7 +42,6 @@
                         <span class="unit">hPa</span>
                     </div>
                 </div>
-                <!-- Три графика вертикально -->
                 <div class="charts-vertical">
                     <div class="chart-item">
                         <div class="chart-label">Температура</div>
@@ -59,31 +60,6 @@
                         <div class="mini-chart">
                             <canvas id="presChart"></canvas>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MPU6050 -->
-            <div class="sensor-card">
-                <div class="sensor-name">🔄 MPU6050</div>
-                <div class="sensor-values">
-                    <div class="sensor-value-item">
-                        <span class="value" id="accX">—</span>
-                        <span class="unit">X</span>
-                    </div>
-                    <div class="sensor-value-item">
-                        <span class="value" id="accY">—</span>
-                        <span class="unit">Y</span>
-                    </div>
-                    <div class="sensor-value-item">
-                        <span class="value" id="accZ">—</span>
-                        <span class="unit">Z</span>
-                    </div>
-                </div>
-                <div class="chart-item">
-                    <div class="chart-label">Акселерометр</div>
-                    <div class="mini-chart">
-                        <canvas id="accChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -132,6 +108,55 @@
             </div>
         </div>
 
+        <!-- Вкладка с 3D визуализацией MPU6050 -->
+        <div id="mpu3d" class="tab-content">
+            <div class="status">🎮 3D визуализация MPU6050</div>
+            
+            <div class="mpu-controls">
+                <div class="sensor-card">
+                    <div class="sensor-name">🔄 MPU6050 - Данные</div>
+                    <div class="sensor-values">
+                        <div class="sensor-value-item">
+                            <span class="value" id="gyroX">—</span>
+                            <span class="unit">X rad</span>
+                        </div>
+                        <div class="sensor-value-item">
+                            <span class="value" id="gyroY">—</span>
+                            <span class="unit">Y rad</span>
+                        </div>
+                        <div class="sensor-value-item">
+                            <span class="value" id="gyroZ">—</span>
+                            <span class="unit">Z rad</span>
+                        </div>
+                    </div>
+                    <div class="sensor-values">
+                        <div class="sensor-value-item">
+                            <span class="value" id="accX">—</span>
+                            <span class="unit">acc X</span>
+                        </div>
+                        <div class="sensor-value-item">
+                            <span class="value" id="accY">—</span>
+                            <span class="unit">acc Y</span>
+                        </div>
+                        <div class="sensor-value-item">
+                            <span class="value" id="accZ">—</span>
+                            <span class="unit">acc Z</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button class="reset-btn" id="reset">RESET ALL</button>
+                        <button class="reset-btn" id="resetX">X</button>
+                        <button class="reset-btn" id="resetY">Y</button>
+                        <button class="reset-btn" id="resetZ">Z</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cube-container">
+                <div id="cube3d"></div>
+            </div>
+        </div>
+
         <!-- Вкладка с газом -->
         <div id="gas" class="tab-content">
             <h2>💨 Газ (MQ135)</h2>
@@ -172,8 +197,9 @@
         <div id="settings" class="tab-content">
             <div class="settings-card">
                 <h3>🔧 О проекте</h3>
-                <p>Мониторинг всех датчиков на ESP32</p>
-                <p>📡 Датчики: BME280, MPU6050, ML8511, AD8232</p>
+                <p>Мониторинг всех датчиков на ESP32 + 3D визуализация</p>
+                <p>📡 Датчики: BME280, MPU6050, ML8511, AD8232, MQ135</p>
+                <p>🎮 3D куб MPU6050 на Three.js</p>
                 <p>🔄 Обновление каждые 30 секунд</p>
                 <hr>
                 <h3>📊 Текущие значения</h3>
