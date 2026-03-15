@@ -62,7 +62,7 @@ async function loadData() {
         document.getElementById('lastUpdate').innerHTML = `🕐 ${lastAll.created_at ? new Date(lastAll.created_at).toLocaleString() : '—'}`;
         document.getElementById('connectionStatus').innerHTML = '✅ Онлайн';
         
-        // ОБНОВЛЯЕМ ГРАФИКИ ТОЛЬКО ОТ НУЖНЫХ УСТРОЙСТВ
+        // Обновляем графики
         updateCharts(allSensorsData, gasData);
         
         // Обновляем историю
@@ -84,13 +84,13 @@ function updateCharts(allSensorsData, gasData) {
     // Метки времени для всех датчиков
     const allLabels = last20All.map(row => {
         const d = new Date(row.created_at);
-        return `${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
+        return `${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')}`;
     });
     
     // Метки времени для газа
     const gasLabels = last20Gas.map(row => {
         const d = new Date(row.created_at);
-        return `${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
+        return `${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')}`;
     });
     
     // ===== ГРАФИК ТЕМПЕРАТУРЫ =====
@@ -315,6 +315,6 @@ function updateHistory(data) {
     document.getElementById('historyTable').innerHTML = tableHtml;
 }
 
-// Запуск
+// Запуск с обновлением КАЖДЫЕ 5 СЕКУНД!
 loadData();
-setInterval(loadData, 30000);
+setInterval(loadData, 5000);
