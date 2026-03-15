@@ -89,6 +89,7 @@ h1 {
     display: flex;
     gap: 20px;
     flex-wrap: wrap;
+    margin-bottom: 10px;
 }
 
 .sensor-value-item {
@@ -108,21 +109,25 @@ h1 {
     color: #999;
 }
 
-/* Ряд с графиками для BME280 */
-.charts-row {
+/* Вертикальные графики */
+.charts-vertical {
     display: flex;
-    gap: 8px;
-    margin-top: 12px;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.chart-item {
     width: 100%;
 }
 
-.charts-row .mini-chart {
-    flex: 1;
-    height: 60px;
-    margin-top: 0;
+.chart-label {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+    font-weight: 500;
 }
 
-/* Мини-графики */
 .mini-chart {
     height: 60px;
     width: 100%;
@@ -130,7 +135,6 @@ h1 {
     border-radius: 6px;
     background: #fafafa;
     padding: 3px 0;
-    margin-top: 10px;
 }
 
 .mini-chart canvas {
@@ -140,31 +144,32 @@ h1 {
 
 /* Цвета для графиков BME280 */
 #tempChart {
-    border-left: 2px solid #FF6B6B;
+    border-left: 3px solid #FF6B6B;
 }
 
 #humChart {
-    border-left: 2px solid #4ECDC4;
+    border-left: 3px solid #4ECDC4;
 }
 
 #presChart {
-    border-left: 2px solid #9B59B6;
+    border-left: 3px solid #9B59B6;
 }
 
+/* Цвета для других графиков */
 #accChart {
-    border-left: 2px solid #4ECDC4;
+    border-left: 3px solid #4ECDC4;
 }
 
 #uvChart {
-    border-left: 2px solid #9B59B6;
+    border-left: 3px solid #9B59B6;
 }
 
 #ecgChart {
-    border-left: 2px solid #2ECC71;
+    border-left: 3px solid #2ECC71;
 }
 
 #gasChart {
-    border-left: 2px solid #007AFF;
+    border-left: 3px solid #007AFF;
 }
 
 /* Контейнер для большого графика */
@@ -271,15 +276,11 @@ h2 {
         font-size: 20px;
     }
     
-    .charts-row {
-        gap: 4px;
+    .charts-vertical {
+        gap: 12px;
     }
     
     .mini-chart {
-        height: 50px;
-    }
-    
-    .charts-row .mini-chart {
         height: 50px;
     }
     
