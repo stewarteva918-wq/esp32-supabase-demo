@@ -142,7 +142,7 @@ h1 {
     width: 100% !important;
 }
 
-/* Цвета для графиков BME280 */
+/* Цвета для графиков */
 #tempChart {
     border-left: 3px solid #FF6B6B;
 }
@@ -155,7 +155,6 @@ h1 {
     border-left: 3px solid #9B59B6;
 }
 
-/* Цвета для других графиков */
 #accChart {
     border-left: 3px solid #4ECDC4;
 }
@@ -196,7 +195,7 @@ h1 {
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-/* ===== ИСПРАВЛЕННАЯ ТАБЛИЦА С ГОРИЗОНТАЛЬНЫМ СКРОЛЛОМ ===== */
+/* Таблица истории */
 .table-container {
     background: white;
     border-radius: 12px;
@@ -210,7 +209,7 @@ table {
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
-    min-width: 1000px;
+    min-width: 1100px;
 }
 
 th {
@@ -219,6 +218,9 @@ th {
     padding: 10px;
     text-align: left;
     font-weight: 500;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 td {
@@ -227,7 +229,7 @@ td {
 }
 
 tr:hover {
-    background: #f9f9f9;
+    filter: brightness(0.98);
 }
 
 /* Карточка настроек */
@@ -264,7 +266,7 @@ h2 {
     margin: 0 0 15px 0;
 }
 
-/* Адаптивность для мобильных */
+/* Адаптивность */
 @media (max-width: 600px) {
     body {
         padding: 10px;
@@ -301,7 +303,6 @@ h2 {
     }
 }
 
-/* Стили для canvas */
 canvas {
     max-width: 100%;
     height: auto !important;
