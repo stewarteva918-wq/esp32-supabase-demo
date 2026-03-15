@@ -142,7 +142,7 @@ h1 {
     width: 100% !important;
 }
 
-/* Цвета для графиков */
+/* Цвета для графиков BME280 */
 #tempChart {
     border-left: 3px solid #FF6B6B;
 }
@@ -155,6 +155,7 @@ h1 {
     border-left: 3px solid #9B59B6;
 }
 
+/* Цвета для других графиков */
 #accChart {
     border-left: 3px solid #4ECDC4;
 }
@@ -209,7 +210,7 @@ table {
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
-    min-width: 1100px;
+    min-width: 900px;
 }
 
 th {
@@ -218,9 +219,6 @@ th {
     padding: 10px;
     text-align: left;
     font-weight: 500;
-    position: sticky;
-    top: 0;
-    z-index: 10;
 }
 
 td {
@@ -229,7 +227,7 @@ td {
 }
 
 tr:hover {
-    filter: brightness(0.98);
+    background: #f9f9f9;
 }
 
 /* Карточка настроек */
@@ -266,7 +264,7 @@ h2 {
     margin: 0 0 15px 0;
 }
 
-/* Адаптивность */
+/* Адаптивность для мобильных */
 @media (max-width: 600px) {
     body {
         padding: 10px;
