@@ -230,6 +230,29 @@ tr:hover {
     background: #f9f9f9;
 }
 
+/* Кнопка скачивания */
+.download-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.2s;
+}
+
+.download-btn:hover {
+    background: #218838;
+}
+
+.download-btn:active {
+    transform: scale(0.98);
+}
+
 /* Карточка настроек */
 .settings-card {
     background: white;
