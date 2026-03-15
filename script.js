@@ -69,6 +69,13 @@ async function loadData() {
         
         document.getElementById('ecgRaw').textContent = last.ecg_raw || '—';
         
+        // Газ (если есть)
+        if (last.gas_raw) {
+            document.getElementById('gasRaw').textContent = last.gas_raw;
+            const ppm = Math.round(last.gas_raw * (3.3 / 4095) * 100);
+            document.getElementById('gasPPM').textContent = ppm;
+        }
+        
         document.getElementById('deviceInfo').innerHTML = `🆔 ${last.device_id || '—'}`;
         document.getElementById('lastUpdate').innerHTML = `🕐 ${last.created_at ? new Date(last.created_at).toLocaleString() : '—'}`;
         document.getElementById('connectionStatus').innerHTML = '✅ Онлайн';
@@ -76,7 +83,7 @@ async function loadData() {
         // Обновляем все графики
         updateAllCharts();
         
-        // Обновляем историю
+        // Обновляем историю (ТЕПЕРЬ С ГАЗОМ!)
         updateHistory(sortedData.slice(-50).reverse());
         
     } catch (error) {
@@ -251,6 +258,7 @@ function updateAllCharts() {
     });
 }
 
+// ===== ИСПРАВЛЕННАЯ ФУНКЦИЯ ИСТОРИИ С ГАЗОМ =====
 function updateHistory(data) {
     let tableHtml = `
         <table>
@@ -261,10 +269,18 @@ function updateHistory(data) {
                 <th>Давл</th>
                 <th>UV</th>
                 <th>ЭКГ</th>
+                <th>Газ RAW</th>
+                <th>Газ PPM</th>
             </tr>
     `;
     
-    data.slice(0, 20).forEach(row => {
+    data.slice(0, 30).forEach(row => {
+        // Расчет PPM если есть газ
+        let gasPPM = '—';
+        if (row.gas_raw && row.gas_raw > 100) {
+            gasPPM = Math.round(row.gas_raw * (3.3 / 4095) * 100);
+        }
+        
         tableHtml += `<tr>
             <td>${new Date(row.created_at).toLocaleString()}</td>
             <td>${row.temperature?.toFixed(1) || '—'}</td>
@@ -272,6 +288,8 @@ function updateHistory(data) {
             <td>${row.pressure?.toFixed(1) || '—'}</td>
             <td>${row.uv_index?.toFixed(1) || '—'}</td>
             <td>${row.ecg_raw || '—'}</td>
+            <td>${row.gas_raw || '—'}</td>
+            <td>${gasPPM}</td>
         </tr>`;
     });
     tableHtml += '</table>';
