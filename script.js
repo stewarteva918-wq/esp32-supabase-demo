@@ -1,13 +1,9 @@
 const SUPABASE_URL = 'https://xqawbkilonphmhikawqs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhxYXdia2lsb25waG1oaWthd3FzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NTk2ODEsImV4cCI6MjA4ODEzNTY4MX0.IPLfnbuEA6PCK6y79NHKnbRpoBzMiNAA7BVWveQDM6o';
 
-// Графики
 let charts = {
-    temp: null,
-    acc: null,
-    uv: null,
-    ecg: null,
-    gas: null
+    temp: null, hum: null, pres: null,
+    acc: null, uv: null, ecg: null, gas: null
 };
 
 let historyData = {
@@ -73,12 +69,6 @@ async function loadData() {
         
         document.getElementById('ecgRaw').textContent = last.ecg_raw || '—';
         
-        if (last.gas_raw) {
-            const ppm = Math.round(last.gas_raw * (3.3 / 4095) * 100);
-            document.getElementById('gasRaw').textContent = last.gas_raw;
-            document.getElementById('gasPPM').textContent = ppm;
-        }
-        
         document.getElementById('deviceInfo').innerHTML = `🆔 ${last.device_id || '—'}`;
         document.getElementById('lastUpdate').innerHTML = `🕐 ${last.created_at ? new Date(last.created_at).toLocaleString() : '—'}`;
         document.getElementById('connectionStatus').innerHTML = '✅ Онлайн';
@@ -108,7 +98,56 @@ function updateAllCharts() {
                 borderColor: '#FF6B6B',
                 borderWidth: 2,
                 fill: false,
-                pointRadius: 1
+                pointRadius: 1,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { display: false }, y: { display: false } }
+        }
+    });
+
+    // График влажности
+    const humCtx = document.getElementById('humChart').getContext('2d');
+    if (charts.hum) charts.hum.destroy();
+    charts.hum = new Chart(humCtx, {
+        type: 'line',
+        data: {
+            labels: historyData.labels,
+            datasets: [{
+                data: historyData.hum,
+                borderColor: '#4ECDC4',
+                borderWidth: 2,
+                fill: false,
+                pointRadius: 1,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { display: false }, y: { display: false } }
+        }
+    });
+
+    // График давления
+    const presCtx = document.getElementById('presChart').getContext('2d');
+    if (charts.pres) charts.pres.destroy();
+    charts.pres = new Chart(presCtx, {
+        type: 'line',
+        data: {
+            labels: historyData.labels,
+            datasets: [{
+                data: historyData.pres,
+                borderColor: '#9B59B6',
+                borderWidth: 2,
+                fill: false,
+                pointRadius: 1,
+                tension: 0.3
             }]
         },
         options: {
@@ -152,7 +191,8 @@ function updateAllCharts() {
                 borderColor: '#9B59B6',
                 borderWidth: 2,
                 fill: false,
-                pointRadius: 1
+                pointRadius: 1,
+                tension: 0.3
             }]
         },
         options: {
@@ -175,7 +215,8 @@ function updateAllCharts() {
                 borderColor: '#2ECC71',
                 borderWidth: 2,
                 fill: false,
-                pointRadius: 1
+                pointRadius: 1,
+                tension: 0.3
             }]
         },
         options: {
@@ -186,7 +227,7 @@ function updateAllCharts() {
         }
     });
 
-    // График газа (большой)
+    // График газа
     const gasCtx = document.getElementById('gasChart').getContext('2d');
     if (charts.gas) charts.gas.destroy();
     charts.gas = new Chart(gasCtx, {
@@ -218,7 +259,6 @@ function updateHistory(data) {
                 <th>Темп</th>
                 <th>Влаж</th>
                 <th>Давл</th>
-                <th>Газ</th>
                 <th>UV</th>
                 <th>ЭКГ</th>
             </tr>
@@ -230,7 +270,6 @@ function updateHistory(data) {
             <td>${row.temperature?.toFixed(1) || '—'}</td>
             <td>${row.humidity?.toFixed(1) || '—'}</td>
             <td>${row.pressure?.toFixed(1) || '—'}</td>
-            <td>${row.gas_raw || '—'}</td>
             <td>${row.uv_index?.toFixed(1) || '—'}</td>
             <td>${row.ecg_raw || '—'}</td>
         </tr>`;
