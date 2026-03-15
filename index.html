@@ -14,58 +14,125 @@
         <!-- Вкладки -->
         <div class="tabs">
             <button class="tab-button active" onclick="openTab('main')">🏠 Главная</button>
+            <button class="tab-button" onclick="openTab('sensors')">📡 Все датчики</button>
             <button class="tab-button" onclick="openTab('history')">📋 История</button>
             <button class="tab-button" onclick="openTab('settings')">ℹ️ О проекте</button>
         </div>
 
-        <!-- Главная -->
+        <!-- Главная (только MQ135) -->
         <div id="main" class="tab-content active">
             <div class="status" id="connectionStatus">Загрузка...</div>
             
-            <!-- Сетка датчиков (сюда можно добавлять новые) -->
-            <div class="sensors-grid" id="sensorsGrid">
-                <!-- MQ135 Gas -->
-                <div class="sensor-card">
-                    <div class="sensor-name">💨 Газ (MQ135)</div>
-                    <div>
-                        <span class="sensor-value" id="gasRaw">—</span>
-                        <span class="sensor-unit">RAW</span>
+            <div class="sensor-card">
+                <div class="sensor-name">💨 Газ (MQ135)</div>
+                <div class="sensor-values">
+                    <div class="sensor-value-item">
+                        <span class="value" id="gasRaw">—</span>
+                        <span class="unit">RAW</span>
                     </div>
-                    <div>
-                        <span class="sensor-value" id="gasPPM">—</span>
-                        <span class="sensor-unit">PPM</span>
+                    <div class="sensor-value-item">
+                        <span class="value" id="gasPPM">—</span>
+                        <span class="unit">PPM</span>
                     </div>
                 </div>
-                
-                <!-- Место для новых датчиков (пример) -->
-                <!--
-                <div class="sensor-card">
-                    <div class="sensor-name">🌡️ Температура</div>
-                    <span class="sensor-value" id="temp">—</span>
-                    <span class="sensor-unit">°C</span>
-                </div>
-                <div class="sensor-card">
-                    <div class="sensor-name">💧 Влажность</div>
-                    <span class="sensor-value" id="hum">—</span>
-                    <span class="sensor-unit">%</span>
-                </div>
-                <div class="sensor-card">
-                    <div class="sensor-name">🫁 CO2</div>
-                    <span class="sensor-value" id="co2">—</span>
-                    <span class="sensor-unit">ppm</span>
-                </div>
-                -->
             </div>
 
-            <!-- График -->
             <div class="chart-container">
                 <canvas id="gasChart"></canvas>
             </div>
 
-            <!-- Информация -->
             <div class="info-row">
                 <span id="deviceInfo"></span>
                 <span id="lastUpdate"></span>
+            </div>
+        </div>
+
+        <!-- Вкладка со всеми датчиками -->
+        <div id="sensors" class="tab-content">
+            <h2>📡 Все показания</h2>
+            
+            <!-- BME280 -->
+            <div class="sensor-card">
+                <div class="sensor-name">🌡️ BME280</div>
+                <div class="sensor-values">
+                    <div class="sensor-value-item">
+                        <span class="value" id="temp">—</span>
+                        <span class="unit">°C</span>
+                    </div>
+                    <div class="sensor-value-item">
+                        <span class="value" id="hum">—</span>
+                        <span class="unit">%</span>
+                    </div>
+                    <div class="sensor-value-item">
+                        <span class="value" id="pres">—</span>
+                        <span class="unit">hPa</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MPU6050 -->
+            <div class="sensor-card">
+                <div class="sensor-name">🔄 MPU6050</div>
+                <div class="sensor-values">
+                    <div class="sensor-value-item">
+                        <span class="value" id="accX">—</span>
+                        <span class="unit">X</span>
+                    </div>
+                    <div class="sensor-value-item">
+                        <span class="value" id="accY">—</span>
+                        <span class="unit">Y</span>
+                    </div>
+                    <div class="sensor-value-item">
+                        <span class="value" id="accZ">—</span>
+                        <span class="unit">Z</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ML8511 -->
+            <div class="sensor-card">
+                <div class="sensor-name">☀️ ML8511 (UV)</div>
+                <div class="sensor-values">
+                    <div class="sensor-value-item">
+                        <span class="value" id="uvRaw">—</span>
+                        <span class="unit">RAW</span>
+                    </div>
+                    <div class="sensor-value-item">
+                        <span class="value" id="uvIndex">—</span>
+                        <span class="unit">индекс</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AD8232 -->
+            <div class="sensor-card">
+                <div class="sensor-name">💓 AD8232 (ЭКГ)</div>
+                <div class="sensor-values">
+                    <div class="sensor-value-item">
+                        <span class="value" id="ecgRaw">—</span>
+                        <span class="unit">RAW</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MQ135 (дубль для полноты) -->
+            <div class="sensor-card">
+                <div class="sensor-name">💨 MQ135 (газ)</div>
+                <div class="sensor-values">
+                    <div class="sensor-value-item">
+                        <span class="value" id="gasRaw2">—</span>
+                        <span class="unit">RAW</span>
+                    </div>
+                    <div class="sensor-value-item">
+                        <span class="value" id="gasPPM2">—</span>
+                        <span class="unit">PPM</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-row">
+                <span id="deviceInfo2"></span>
+                <span id="lastUpdate2"></span>
             </div>
         </div>
 
@@ -81,17 +148,12 @@
         <div id="settings" class="tab-content">
             <div class="settings-card">
                 <h3>🔧 О проекте</h3>
-                <p>Мониторинг качества воздуха на ESP32 + MQ135</p>
-                <p>📡 Данные в Supabase</p>
-                <p>🔄 Обновление каждые 5 секунд</p>
+                <p>Мониторинг всех датчиков на ESP32</p>
+                <p>📡 Датчики: BME280, MPU6050, ML8511, AD8232, MQ135</p>
+                <p>🔄 Обновление каждые 30 секунд</p>
                 <hr>
-                <h3>📊 Датчики</h3>
-                <p>• MQ135 - качество воздуха (RAW/PPM)</p>
-                <p>• Место для новых датчиков</p>
-                <hr>
-                <h3>🔗 Ссылки</h3>
-                <p>GitHub репозиторий</p>
-                <p>Supabase проект</p>
+                <h3>📊 Текущие значения</h3>
+                <p id="stats">Загрузка...</p>
             </div>
         </div>
     </div>
