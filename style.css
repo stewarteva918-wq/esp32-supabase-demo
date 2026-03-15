@@ -71,17 +71,24 @@ h1 {
     border-radius: 12px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin-bottom: 15px;
+    transition: all 0.2s;
+}
+
+.sensor-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .sensor-name {
     font-size: 14px;
     color: #666;
     margin-bottom: 10px;
+    font-weight: 500;
 }
 
 .sensor-values {
     display: flex;
     gap: 20px;
+    flex-wrap: wrap;
 }
 
 .sensor-value-item {
@@ -91,7 +98,7 @@ h1 {
 }
 
 .sensor-value-item .value {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 600;
     color: #333;
 }
@@ -101,14 +108,25 @@ h1 {
     color: #999;
 }
 
-/* График */
+/* Мини-графики */
+.mini-chart {
+    margin-top: 12px;
+    height: 60px;
+    width: 100%;
+    opacity: 0.8;
+    border-radius: 6px;
+    background: #fafafa;
+    padding: 5px 0;
+}
+
+/* Контейнер для большого графика */
 .chart-container {
     background: white;
     padding: 15px;
     border-radius: 12px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin: 15px 0;
-    height: 250px;
+    height: 300px;
 }
 
 /* Информационная строка */
@@ -117,11 +135,15 @@ h1 {
     gap: 15px;
     color: #666;
     font-size: 13px;
-    margin: 10px 0;
+    margin: 15px 0;
     flex-wrap: wrap;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-/* Таблица */
+/* Таблица истории */
 .table-container {
     background: white;
     border-radius: 12px;
@@ -149,6 +171,10 @@ td {
     border-bottom: 1px solid #eee;
 }
 
+tr:hover {
+    background: #f9f9f9;
+}
+
 /* Карточка настроек */
 .settings-card {
     background: white;
@@ -167,10 +193,83 @@ td {
     color: #666;
     font-size: 13px;
     margin: 5px 0;
+    line-height: 1.5;
 }
 
 hr {
     border: none;
     border-top: 1px solid #eee;
     margin: 15px 0;
+}
+
+/* Заголовки вкладок */
+h2 {
+    color: #333;
+    font-size: 18px;
+    margin: 0 0 15px 0;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+    
+    .sensor-values {
+        gap: 12px;
+    }
+    
+    .sensor-value-item .value {
+        font-size: 20px;
+    }
+    
+    .mini-chart {
+        height: 50px;
+    }
+    
+    .chart-container {
+        height: 250px;
+        padding: 10px;
+    }
+    
+    .tabs {
+        padding: 5px;
+    }
+    
+    .tab-button {
+        padding: 8px 5px;
+        font-size: 12px;
+    }
+}
+
+/* Стили для графиков */
+canvas {
+    max-width: 100%;
+    height: auto !important;
+}
+
+/* Специально для мини-графиков */
+.mini-chart canvas {
+    max-height: 60px;
+}
+
+/* Цветовые акценты */
+#tempChart {
+    border-left: 2px solid #FF6B6B;
+}
+
+#accChart {
+    border-left: 2px solid #4ECDC4;
+}
+
+#uvChart {
+    border-left: 2px solid #9B59B6;
+}
+
+#ecgChart {
+    border-left: 2px solid #2ECC71;
+}
+
+#gasChart {
+    border-left: 2px solid #007AFF;
 }
